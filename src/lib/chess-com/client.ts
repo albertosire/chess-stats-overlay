@@ -1,8 +1,30 @@
-const USER_AGENT = "ChessStatsOverlay/1.0 (https://github.com/chess-stats-overlay)";
+const DEFAULT_USER_AGENT =
+  "ChessStatsOverlay/1.0 (Alberto Horta; https://github.com/albertosire)";
+
+type CachedBody = {
+  etag?: string;
+  lastModified?: string;
+  body: unknown;
+};
+
+const responseCache = new Map<string, CachedBody>();
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function chessFetch<T>(url: string, retries = 3): Promise<T> {
+function getUserAgent(): string {
+  return process.env.CHESS_COM_USER_AGENT?.trim() || DEFAULT_USER_AGENT;
+}
+
+export type ChessFetchOptions<T> = {
+  retries?: number;
+  notFound?: T;
+};
+
+export async function chessFetch<T>(
+  url: string,
+  options: ChessFetchOptions<T> = {},
+): Promise<T> {
+  const retries = options.retries ?? 3;
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < retries; attempt++) {
@@ -11,15 +33,37 @@ export async function chessFetch<T>(url: string, retries = 3): Promise<T> {
     }
 
     try {
+      const cached = responseCache.get(url);
+      const headers: Record<string, string> = {
+        "User-Agent": getUserAgent(),
+        Accept: "application/json",
+      };
+
+      if (cached?.etag) {
+        headers["If-None-Match"] = cached.etag;
+      }
+      if (cached?.lastModified) {
+        headers["If-Modified-Since"] = cached.lastModified;
+      }
+
       const response = await fetch(url, {
-        headers: {
-          "User-Agent": USER_AGENT,
-          Accept: "application/json",
-        },
+        headers,
         cache: "no-store",
       });
 
+      if (response.status === 304) {
+        if (cached) {
+          return cached.body as T;
+        }
+
+        responseCache.delete(url);
+        continue;
+      }
+
       if (response.status === 404) {
+        if (options.notFound !== undefined) {
+          return options.notFound;
+        }
         throw new ChessApiError("Usuário ou recurso não encontrado.", 404);
       }
 
@@ -37,7 +81,14 @@ export async function chessFetch<T>(url: string, retries = 3): Promise<T> {
         throw new ChessApiError(`Erro na API Chess.com (${response.status}).`, response.status);
       }
 
-      return (await response.json()) as T;
+      const body = (await response.json()) as T;
+      responseCache.set(url, {
+        etag: response.headers.get("etag") ?? undefined,
+        lastModified: response.headers.get("last-modified") ?? undefined,
+        body,
+      });
+
+      return body;
     } catch (error) {
       if (error instanceof ChessApiError) {
         if (error.status === 404) throw error;

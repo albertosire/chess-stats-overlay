@@ -18,13 +18,39 @@ function archiveOverlapsPeriod(
   return start <= to && end >= from;
 }
 
+function utcMonth(date: Date): { year: number; month: number } {
+  return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1 };
+}
+
+function isSameUtcMonth(from: Date, to: Date): boolean {
+  const start = utcMonth(from);
+  const end = utcMonth(to);
+  return start.year === end.year && start.month === end.month;
+}
+
+function monthlyArchiveUrl(username: string, year: number, month: number): string {
+  const paddedMonth = String(month).padStart(2, "0");
+  return `https://api.chess.com/pub/player/${encodeURIComponent(username)}/games/${year}/${paddedMonth}`;
+}
+
+async function fetchMonthlyArchive(url: string): Promise<ChessGame[]> {
+  const archive = await chessFetch<MonthlyArchive>(url, { notFound: { games: [] } });
+  return archive.games ?? [];
+}
+
 export async function fetchGamesInPeriod(
   username: string,
   from: Date,
   to: Date,
 ): Promise<ChessGame[]> {
+  if (isSameUtcMonth(from, to)) {
+    const { year, month } = utcMonth(from);
+    return fetchMonthlyArchive(monthlyArchiveUrl(username, year, month));
+  }
+
   const archives = await chessFetch<ArchivesResponse>(
     `https://api.chess.com/pub/player/${encodeURIComponent(username)}/games/archives`,
+    { notFound: { archives: [] } },
   );
 
   const relevantUrls = archives.archives.filter((url) => {
@@ -37,10 +63,9 @@ export async function fetchGamesInPeriod(
     return [];
   }
 
-  const monthlyArchives = await fetchWithConcurrency(
-    relevantUrls,
-    (url) => chessFetch<MonthlyArchive>(url),
+  const monthlyArchives = await fetchWithConcurrency(relevantUrls, (url) =>
+    fetchMonthlyArchive(url),
   );
 
-  return monthlyArchives.flatMap((archive) => archive.games ?? []);
+  return monthlyArchives.flat();
 }

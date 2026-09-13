@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   buildAbsoluteUrl,
   buildApiPath,
   buildIframeSnippet,
   buildOverlayPath,
+  buildTextApiPath,
+  DEFAULT_REFRESH_SECONDS,
   GAME_TYPE_OPTIONS,
+  MAX_OVERLAY_NAME_LENGTH,
+  MAX_REFRESH_SECONDS,
+  MIN_REFRESH_SECONDS,
   PERIOD_OPTIONS,
   validateOverlayConfig,
   type OverlayConfig,
@@ -15,16 +20,17 @@ import {
 
 const DEFAULT_CONFIG: OverlayConfig = {
   username: "",
+  name: "",
   type: "blitz",
   periodMode: "session",
   from: "",
   to: "",
-  refresh: 30,
+  refresh: DEFAULT_REFRESH_SECONDS,
   timeControl: "600+0",
   initialRating: "",
 };
 
-type OutputTab = "url" | "iframe" | "api";
+type OutputTab = "url" | "iframe" | "api" | "text";
 
 function CopyButton({ value, label, disabled }: { value: string; label: string; disabled?: boolean }) {
   const [copied, setCopied] = useState(false);
@@ -48,29 +54,43 @@ function CopyButton({ value, label, disabled }: { value: string; label: string; 
   );
 }
 
+function formatSessionStart(iso: string): string {
+  return new Date(iso).toLocaleString("pt-BR");
+}
+
 export function OverlayBuilder() {
   const [config, setConfig] = useState<OverlayConfig>(DEFAULT_CONFIG);
   const [outputTab, setOutputTab] = useState<OutputTab>("url");
-  const [origin, setOrigin] = useState("");
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
+  const [origin] = useState(() =>
+    typeof window === "undefined" ? "" : window.location.origin,
+  );
 
   const errors = useMemo(() => validateOverlayConfig(config), [config]);
   const isValid = errors.length === 0;
 
   const overlayPath = buildOverlayPath(config);
   const apiPath = buildApiPath(config);
+  const textApiPath = buildTextApiPath(config);
   const overlayUrl = origin ? buildAbsoluteUrl(origin, overlayPath) : overlayPath;
   const apiUrl = origin ? buildAbsoluteUrl(origin, apiPath) : apiPath;
+  const textApiUrl = origin ? buildAbsoluteUrl(origin, textApiPath) : textApiPath;
   const iframeSnippet = buildIframeSnippet(overlayUrl);
 
   const outputValue =
-    outputTab === "url" ? overlayUrl : outputTab === "iframe" ? iframeSnippet : apiUrl;
+    outputTab === "url"
+      ? overlayUrl
+      : outputTab === "iframe"
+        ? iframeSnippet
+        : outputTab === "text"
+          ? textApiUrl
+          : apiUrl;
 
   function update<K extends keyof OverlayConfig>(key: K, value: OverlayConfig[K]) {
     setConfig((current) => ({ ...current, [key]: value }));
+  }
+
+  function startCounter() {
+    update("sessionStart", new Date().toISOString());
   }
 
   return (
@@ -79,8 +99,8 @@ export function OverlayBuilder() {
         <div>
           <h2 className="text-xl font-semibold text-white">Monte seu overlay</h2>
           <p className="mt-1 text-sm text-zinc-400">
-            Configure conta, modalidade e período. A página gerada se atualiza sozinha enquanto
-            estiver aberta.
+            Configure conta, modalidade e período. A página gerada consulta o arquivo do mês a cada
+            20–30s enquanto estiver aberta.
           </p>
         </div>
 
@@ -93,6 +113,21 @@ export function OverlayBuilder() {
             placeholder="ex: hikaru"
             className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
           />
+        </label>
+
+        <label className="block space-y-2">
+          <span className="text-sm font-medium text-zinc-200">Nome do overlay</span>
+          <input
+            type="text"
+            value={config.name ?? ""}
+            maxLength={MAX_OVERLAY_NAME_LENGTH}
+            onChange={(event) => update("name", event.target.value)}
+            placeholder="ex: Blitz da live"
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+          />
+          <p className="text-xs text-zinc-500">
+            Opcional. Sem nome, o overlay mostra o usuário do Chess.com.
+          </p>
         </label>
 
         <label className="block space-y-2">
@@ -162,6 +197,28 @@ export function OverlayBuilder() {
           </p>
         </label>
 
+        {config.periodMode === "session" ? (
+          <div className="space-y-3 rounded-lg border border-zinc-700 bg-zinc-950/70 px-3 py-3">
+            <button
+              type="button"
+              onClick={startCounter}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500"
+            >
+              {config.sessionStart ? "Reiniciar Contador" : "Iniciar Contador"}
+            </button>
+            {config.sessionStart ? (
+              <p className="text-xs text-zinc-400">
+                Sessão desde {formatSessionStart(config.sessionStart)}. Esse marco vai na URL do
+                overlay e não muda se o OBS recarregar a fonte.
+              </p>
+            ) : (
+              <p className="text-xs text-zinc-500">
+                O contador só considera partidas com fim depois deste clique.
+              </p>
+            )}
+          </div>
+        ) : null}
+
         {config.periodMode === "custom" ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block space-y-2">
@@ -191,8 +248,8 @@ export function OverlayBuilder() {
           </span>
           <input
             type="range"
-            min={15}
-            max={120}
+            min={MIN_REFRESH_SECONDS}
+            max={MAX_REFRESH_SECONDS}
             step={5}
             value={config.refresh}
             onChange={(event) => update("refresh", Number(event.target.value))}
@@ -227,6 +284,7 @@ export function OverlayBuilder() {
           <div className="overflow-hidden rounded-xl border border-dashed border-zinc-700 bg-[#1a1a1a] p-4">
             {isValid ? (
               <iframe
+                key={overlayPath}
                 src={overlayPath}
                 title="Pré-visualização do overlay"
                 width="100%"
@@ -245,8 +303,8 @@ export function OverlayBuilder() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
           <h2 className="text-xl font-semibold text-white">Use no destino</h2>
           <p className="mt-1 text-sm text-zinc-400">
-            Copie a URL para OBS Browser Source ou o snippet HTML para embutir em sites e ferramentas
-            de overlay.
+            Copie a URL HTML para OBS Browser Source, o texto puro para arquivo/local, ou o JSON
+            para integrações.
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -254,6 +312,7 @@ export function OverlayBuilder() {
               [
                 ["url", "URL do overlay"],
                 ["iframe", "Snippet HTML"],
+                ["text", "URL de texto"],
                 ["api", "URL da API JSON"],
               ] as const
             ).map(([tab, label]) => (
@@ -285,7 +344,9 @@ export function OverlayBuilder() {
                   ? "Copiar URL"
                   : outputTab === "iframe"
                     ? "Copiar snippet"
-                    : "Copiar URL da API"
+                    : outputTab === "text"
+                      ? "Copiar URL de texto"
+                      : "Copiar URL da API"
               }
             />
             {isValid ? (
@@ -308,8 +369,16 @@ export function OverlayBuilder() {
 
           {outputTab === "iframe" && isValid ? (
             <p className="mt-4 text-xs text-zinc-500">
-              Cole o snippet em páginas HTML, widgets de stream ou ferramentas que aceitem embed via
+              Cole o snippet em páginas HTML, widgets de stream ou ferramentas que aceitam embed via
               iframe.
+            </p>
+          ) : null}
+
+          {outputTab === "text" && isValid ? (
+            <p className="mt-4 text-xs text-zinc-500">
+              O Text GDI+ do OBS não lê URL. Use Browser Source nesta URL, ou um comando local:
+              {" "}
+              <code className="text-zinc-400">curl -s &quot;URL&quot; -o stats.txt</code> a cada 25s.
             </p>
           ) : null}
         </div>

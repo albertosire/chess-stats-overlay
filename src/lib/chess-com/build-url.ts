@@ -2,8 +2,14 @@ import type { GameType } from "./types";
 
 export type PeriodMode = "session" | "today" | "week" | "month" | "custom";
 
+export const DEFAULT_REFRESH_SECONDS = 25;
+export const MIN_REFRESH_SECONDS = 20;
+export const MAX_REFRESH_SECONDS = 120;
+export const MAX_OVERLAY_NAME_LENGTH = 40;
+
 export interface OverlayConfig {
   username: string;
+  name?: string;
   type: GameType;
   periodMode: PeriodMode;
   from?: string;
@@ -11,6 +17,13 @@ export interface OverlayConfig {
   refresh: number;
   timeControl?: string;
   initialRating?: string;
+  sessionStart?: string;
+}
+
+export function normalizeOverlayName(value: string | null | undefined): string | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed) return undefined;
+  return trimmed.slice(0, MAX_OVERLAY_NAME_LENGTH);
 }
 
 export function buildOverlaySearchParams(config: OverlayConfig): URLSearchParams {
@@ -20,14 +33,23 @@ export function buildOverlaySearchParams(config: OverlayConfig): URLSearchParams
     params.set("username", config.username.trim().toLowerCase());
   }
 
+  const overlayName = normalizeOverlayName(config.name);
+  if (overlayName) {
+    params.set("name", overlayName);
+  }
+
   params.set("type", config.type);
-  params.set("refresh", String(Math.max(15, config.refresh || 30)));
+  params.set("refresh", String(Math.max(MIN_REFRESH_SECONDS, config.refresh || DEFAULT_REFRESH_SECONDS)));
 
   if (config.periodMode === "custom") {
     if (config.from) params.set("from", config.from);
     if (config.to) params.set("to", config.to);
   } else {
     params.set("period", config.periodMode);
+  }
+
+  if (config.periodMode === "session" && config.sessionStart) {
+    params.set("sessionStart", config.sessionStart);
   }
 
   if (config.type === "manual" && config.timeControl?.trim()) {
@@ -47,6 +69,10 @@ export function buildOverlayPath(config: OverlayConfig): string {
 
 export function buildApiPath(config: OverlayConfig): string {
   return `/api/stats?${buildOverlaySearchParams(config).toString()}`;
+}
+
+export function buildTextApiPath(config: OverlayConfig): string {
+  return `/api/stats.txt?${buildOverlaySearchParams(config).toString()}`;
 }
 
 export function buildAbsoluteUrl(origin: string, path: string): string {
@@ -88,8 +114,12 @@ export function validateOverlayConfig(config: OverlayConfig): string[] {
     }
   }
 
-  if (config.refresh < 15) {
-    errors.push("O intervalo de atualização mínimo é 15 segundos.");
+  if (config.periodMode === "session" && !config.sessionStart) {
+    errors.push("Clique em Iniciar Contador para marcar o início da sessão.");
+  }
+
+  if (config.refresh < MIN_REFRESH_SECONDS) {
+    errors.push(`O intervalo de atualização mínimo é ${MIN_REFRESH_SECONDS} segundos.`);
   }
 
   return errors;
@@ -97,6 +127,7 @@ export function validateOverlayConfig(config: OverlayConfig): string[] {
 
 export const GAME_TYPE_OPTIONS: { value: GameType; label: string; hint: string }[] = [
   { value: "blitz", label: "Blitz", hint: "Partidas blitz padrão" },
+  { value: "bullet", label: "Bullet", hint: "Partidas bullet padrão" },
   { value: "rapid", label: "Rápido", hint: "Partidas rapid padrão" },
   { value: "daily", label: "Diário", hint: "Xadrez diário clássico" },
   { value: "daily960", label: "Diário960", hint: "Xadrez960 diário" },
@@ -105,7 +136,11 @@ export const GAME_TYPE_OPTIONS: { value: GameType; label: string; hint: string }
 ];
 
 export const PERIOD_OPTIONS: { value: PeriodMode; label: string; hint: string }[] = [
-  { value: "session", label: "Sessão ao vivo", hint: "Desde que a página foi aberta — ideal para streams" },
+  {
+    value: "session",
+    label: "Sessão ao vivo",
+    hint: "Clique em Iniciar Contador para marcar T início — ideal para streams",
+  },
   { value: "today", label: "Hoje", hint: "Partidas de hoje" },
   { value: "week", label: "Últimos 7 dias", hint: "Semana corrente" },
   { value: "month", label: "Mês atual", hint: "Do dia 1 até hoje" },
