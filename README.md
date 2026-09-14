@@ -1,10 +1,12 @@
 # Chess Stats Overlay
 
-Overlay open source de estatísticas do Chess.com para transmissões (OBS).
+Ferramenta **open source** para streamers acompanharem vitórias, empates, derrotas e variação de rating do Chess.com no OBS. Consulta o arquivo mensal da PubAPI em polling (cerca de 20–30s). A API **não é tempo real**: partidas recém-terminadas podem levar alguns minutos para aparecer.
 
-Autor: [Alberto Horta](https://github.com/albertosire). Issues e contato do projeto: [github.com/albertosire](https://github.com/albertosire).
+Uso livre, forks bem-vindos. Issues e discussões: [github.com/albertosire/chess-stats-overlay](https://github.com/albertosire/chess-stats-overlay). Autor: [Alberto Horta](https://github.com/albertosire).
 
-A PubAPI do Chess.com **não é tempo real**. Este app consulta o arquivo do mês vigente a cada 20–30s. Partidas recém-terminadas podem levar alguns minutos para aparecer.
+## Legado
+
+Este projeto tenta seguir o legado do [Deuzwood/chess-stats-tracker](https://github.com/Deuzwood/chess-stats-tracker) — um tracker de stats do Chess.com para stream, **sem manutenção há cerca de três anos**. Não é um fork oficial. A ideia que herdamos é a mesma: polling periódico da PubAPI para um placar de sessão na live. Aqui isso vira um builder web, overlay HTML e endpoint de texto.
 
 ## Funcionalidades
 
