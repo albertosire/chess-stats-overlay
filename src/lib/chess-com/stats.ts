@@ -9,6 +9,24 @@ import type {
   StatsResult,
 } from "./types";
 
+function gameId(game: ChessGame): string {
+  return game.url || `${game.end_time}-${game.white.username}-${game.black.username}`;
+}
+
+function dedupeGames(games: ChessGame[]): ChessGame[] {
+  const seen = new Set<string>();
+  const unique: ChessGame[] = [];
+
+  for (const game of games) {
+    const id = gameId(game);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    unique.push(game);
+  }
+
+  return unique;
+}
+
 function getPlayerSide(
   game: ChessGame,
   username: string,
@@ -152,10 +170,12 @@ export async function buildStats(params: StatsParams): Promise<StatsResult> {
   }
 
   const allGames = await fetchGamesInPeriod(username, from, to);
-  const filtered = allGames.filter(
-    (game) =>
-      isInPeriod(game, from, to) &&
-      matchesGameType(game, type, timeControl),
+  const filtered = dedupeGames(
+    allGames.filter(
+      (game) =>
+        isInPeriod(game, from, to) &&
+        matchesGameType(game, type, timeControl),
+    ),
   );
 
   const computed = computeGameStats(filtered, username);

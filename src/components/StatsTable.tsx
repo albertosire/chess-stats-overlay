@@ -5,6 +5,7 @@ import { typeLabel } from "@/lib/chess-com/params";
 
 interface StatsTableProps {
   data: StatsResult;
+  title?: string;
   loading?: boolean;
 }
 
@@ -14,8 +15,9 @@ function formatDelta(value: number | null): string {
   return String(value);
 }
 
-export function StatsTable({ data, loading }: StatsTableProps) {
+export function StatsTable({ data, title, loading }: StatsTableProps) {
   const isPuzzles = data.meta.mode === "puzzles";
+  const displayName = title?.trim() || data.username;
   const delta = data.stats.ratingDelta ?? 0;
   const deltaClass =
     delta > 0 ? "text-emerald-400" : delta < 0 ? "text-red-400" : "text-zinc-200";
@@ -26,7 +28,7 @@ export function StatsTable({ data, loading }: StatsTableProps) {
       style={{ fontFamily: "system-ui, sans-serif" }}
     >
       <div className="mb-3 flex items-center justify-between gap-4 text-sm text-zinc-300">
-        <span className="font-semibold text-white">{data.username}</span>
+        <span className="font-semibold text-white">{displayName}</span>
         <span>
           {typeLabel(data.type)} · {data.period.from} → {data.period.to}
         </span>

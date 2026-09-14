@@ -1,6 +1,7 @@
 import type { GameType, StatsParams } from "./types";
 
 const VALID_TYPES = new Set<GameType>([
+  "bullet",
   "rapid",
   "blitz",
   "daily",
@@ -114,6 +115,7 @@ export function parseStatsParams(
 
 export function typeLabel(type: GameType): string {
   const labels: Record<GameType, string> = {
+    bullet: "Bullet",
     rapid: "Rápido",
     blitz: "Blitz",
     daily: "Diário",

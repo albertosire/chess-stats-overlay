@@ -14,6 +14,8 @@ export function matchesGameType(
   timeControl?: string,
 ): boolean {
   switch (type) {
+    case "bullet":
+      return game.time_class === "bullet" && game.rules === "chess";
     case "rapid":
       return game.time_class === "rapid" && game.rules === "chess";
     case "blitz":

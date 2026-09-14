@@ -1,4 +1,5 @@
 export type GameType =
+  | "bullet"
   | "rapid"
   | "blitz"
   | "daily"
@@ -38,6 +39,7 @@ export interface TacticsStats {
 }
 
 export interface PlayerStats {
+  chess_bullet?: { last?: { rating: number; date: number } };
   chess_rapid?: { last?: { rating: number; date: number } };
   chess_blitz?: { last?: { rating: number; date: number } };
   chess_daily?: { last?: { rating: number; date: number } };
