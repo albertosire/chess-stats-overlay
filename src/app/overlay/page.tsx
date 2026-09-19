@@ -1,18 +1,15 @@
 import { Suspense } from "react";
 import OverlayClient from "./OverlayClient";
+import { resolveEntitlements } from "@/lib/providers/types";
 
 export default function OverlayPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-start justify-start bg-transparent p-4">
-          <div className="rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white">
-            Carregando…
-          </div>
-        </main>
+        <main className="p-4 text-white">Carregando overlay…</main>
       }
     >
-      <OverlayClient />
+      <OverlayClient initialEntitlements={resolveEntitlements(false)} />
     </Suspense>
   );
 }

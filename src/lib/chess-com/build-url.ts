@@ -18,6 +18,8 @@ export interface OverlayConfig {
   timeControl?: string;
   initialRating?: string;
   sessionStart?: string;
+  /** Free overlay: single provider only */
+  provider?: "chesscom" | "lichess";
 }
 
 export function normalizeOverlayName(value: string | null | undefined): string | undefined {
@@ -60,6 +62,8 @@ export function buildOverlaySearchParams(config: OverlayConfig): URLSearchParams
     params.set("initialRating", config.initialRating.trim());
   }
 
+  params.set("provider", config.provider || "chesscom");
+
   return params;
 }
 
@@ -95,7 +99,7 @@ export function validateOverlayConfig(config: OverlayConfig): string[] {
   const errors: string[] = [];
 
   if (!config.username.trim()) {
-    errors.push("Informe o usuário do Chess.com.");
+    errors.push("Informe o usuário da plataforma escolhida.");
   }
 
   if (config.type === "manual" && !config.timeControl?.trim()) {

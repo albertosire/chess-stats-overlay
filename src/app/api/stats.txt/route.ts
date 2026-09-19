@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeOverlayName } from "@/lib/chess-com/build-url";
 import { formatStatsText } from "@/lib/chess-com/format-text";
-import { loadStats } from "@/lib/chess-com/load-stats";
+import { loadStats } from "@/lib/providers/load-stats";
+import { resolveEntitlements } from "@/lib/providers/types";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const loaded = await loadStats(request.nextUrl.searchParams);
+  const loaded = await loadStats(request.nextUrl.searchParams, {
+    entitlements: resolveEntitlements(false),
+  });
 
   if ("error" in loaded) {
     return new NextResponse(loaded.error, {

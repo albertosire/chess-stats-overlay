@@ -17,6 +17,7 @@ import {
   validateOverlayConfig,
   type OverlayConfig,
 } from "@/lib/chess-com/build-url";
+import { PROVIDER_OPTIONS } from "@/lib/providers/registry";
 
 const DEFAULT_CONFIG: OverlayConfig = {
   username: "",
@@ -28,6 +29,7 @@ const DEFAULT_CONFIG: OverlayConfig = {
   refresh: DEFAULT_REFRESH_SECONDS,
   timeControl: "600+0",
   initialRating: "",
+  provider: "chesscom",
 };
 
 type OutputTab = "url" | "iframe" | "api" | "text";
@@ -97,15 +99,37 @@ export function OverlayBuilder() {
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
         <div>
-          <h2 className="text-xl font-semibold text-white">Monte seu overlay</h2>
+          <h2 className="text-xl font-semibold text-white">Monte seu overlay Free</h2>
           <p className="mt-1 text-sm text-zinc-400">
-            Configure conta, modalidade e período. A página gerada consulta o arquivo do mês a cada
-            20–30s enquanto estiver aberta.
+            Preview gratuito: ELO atual + W/D/L. Para Δ ELO, streaks e dual site,{" "}
+            <Link href="/dashboard" className="text-emerald-400 hover:underline">
+              entre no Dashboard Pro
+            </Link>
+            .
           </p>
         </div>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium text-zinc-200">Usuário Chess.com</span>
+          <span className="text-sm font-medium text-zinc-200">Site</span>
+          <select
+            value={config.provider ?? "chesscom"}
+            onChange={(event) =>
+              update("provider", event.target.value as OverlayConfig["provider"])
+            }
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+          >
+            {PROVIDER_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block space-y-2">
+          <span className="text-sm font-medium text-zinc-200">
+            Usuário {config.provider === "lichess" ? "Lichess" : "Chess.com"}
+          </span>
           <input
             type="text"
             value={config.username}

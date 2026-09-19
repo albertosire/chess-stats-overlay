@@ -57,6 +57,8 @@ export interface StatsResult {
     losses: number;
     games: number;
     ratingDelta: number | null;
+    currentRating?: number | null;
+    streak?: number;
   };
   meta: {
     ratedGames: number;
