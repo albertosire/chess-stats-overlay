@@ -43,12 +43,16 @@ function computeGameStats(games: ChessGame[], username: string) {
   let losses = 0;
   let ratedGames = 0;
   const ratedByTime: { endTime: number; rating: number }[] = [];
+  const outcomes: Array<"win" | "draw" | "loss"> = [];
 
-  for (const game of games) {
+  const ordered = [...games].sort((a, b) => a.end_time - b.end_time);
+
+  for (const game of ordered) {
     const side = getPlayerSide(game, username);
     if (!side) continue;
 
     const outcome = classifyResult(game[side].result);
+    outcomes.push(outcome);
     if (outcome === "win") wins += 1;
     else if (outcome === "draw") draws += 1;
     else losses += 1;
@@ -67,6 +71,12 @@ function computeGameStats(games: ChessGame[], username: string) {
       ratedByTime[ratedByTime.length - 1].rating - ratedByTime[0].rating;
   }
 
+  let streak = 0;
+  for (let i = outcomes.length - 1; i >= 0; i -= 1) {
+    if (outcomes[i] !== "win") break;
+    streak += 1;
+  }
+
   return {
     wins,
     draws,
@@ -74,6 +84,8 @@ function computeGameStats(games: ChessGame[], username: string) {
     games: wins + draws + losses,
     ratedGames,
     ratingDelta,
+    streak,
+    lastRating: ratedByTime.at(-1)?.rating ?? null,
   };
 }
 
@@ -190,6 +202,8 @@ export async function buildStats(params: StatsParams): Promise<StatsResult> {
       losses: computed.losses,
       games: computed.games,
       ratingDelta: computed.ratingDelta,
+      currentRating: computed.lastRating,
+      streak: computed.streak,
     },
     meta: {
       ratedGames: computed.ratedGames,

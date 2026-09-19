@@ -1,128 +1,56 @@
 # Chess Stats Overlay
 
-Ferramenta **open source** para streamers acompanharem vitórias, empates, derrotas e variação de rating do Chess.com no OBS. Consulta o arquivo mensal da PubAPI em polling (cerca de 20–30s). A API **não é tempo real**: partidas recém-terminadas podem levar alguns minutos para aparecer.
+Overlay HTML para OBS com estatísticas Chess.com / Lichess. Modelo freemium (Free + Pro + Brand Kits).
 
-Uso livre, forks bem-vindos. Issues e discussões: [github.com/albertosire/chess-stats-overlay](https://github.com/albertosire/chess-stats-overlay). Autor: [Alberto Horta](https://github.com/albertosire).
+## Stack
 
-## Legado
+- Next.js 16 (App Router) + TypeScript + Tailwind
+- Supabase (Auth, Postgres, RLS, Storage)
+- Stripe (assinatura Pro + temas avulsos)
+- Framer Motion (alertas no overlay)
 
-Este projeto tenta seguir o legado do [Deuzwood/chess-stats-tracker](https://github.com/Deuzwood/chess-stats-tracker) — um tracker de stats do Chess.com para stream, **sem manutenção há cerca de três anos**. Não é um fork oficial. A ideia que herdamos é a mesma: polling periódico da PubAPI para um placar de sessão na live. Aqui isso vira um builder web, overlay HTML e endpoint de texto.
-
-## Funcionalidades
-
-- Vitórias, empates, derrotas e variação de rating por período
-- Modalidades: bullet, blitz, rapid, daily, daily960, puzzles, manual (time control)
-- **Iniciar Contador**: marca \(T_{inicio}\) na URL (`sessionStart`) para a sessão da stream
-- Overlay HTML (`/overlay`) para OBS Browser Source
-- Texto puro (`/api/stats.txt`) para arquivo local ou Browser Source mínimo
-- JSON (`/api/stats`) para integrações
-
-## Interface de configuração
-
-A página inicial (`/`) inclui um **builder interativo** que permite:
-
-- Configurar usuário, nome de exibição, modalidade, período e intervalo de atualização
-- Iniciar (ou reiniciar) o contador da sessão
-- Pré-visualizar o overlay
-- Copiar a **URL HTML**, o **snippet iframe**, a **URL de texto** e a **URL JSON**
-
-## Desenvolvimento
+## Setup rápido
 
 ```bash
 npm install
+cp .env.example .env.local
+# Preencha Supabase + Stripe
+npx supabase db push   # ou aplique supabase/migrations/*.sql no SQL Editor
 npm run dev
 ```
 
-No Windows, o `dev`/`start` usa `--use-system-ca` para o Node aceitar o certificado TLS da PubAPI (sem isso o fetch pode falhar com `UNABLE_TO_VERIFY_LEAF_SIGNATURE`).
+### Supabase
 
-Abra `http://localhost:3000`, preencha o usuário, clique em **Iniciar Contador** e copie a URL.
+1. Crie um projeto e rode a migration `supabase/migrations/20260915030909_init_saas_schema.sql`.
+2. Ative Email + Google Auth.
+3. Configure Redirect URL: `http://localhost:3000/auth/callback` (e o domínio de produção).
 
-Exemplo com marco de sessão:
+### Stripe
 
-```
-http://localhost:3000/overlay?username=SEU_USUARIO&type=blitz&period=session&sessionStart=2026-09-13T21:00:00.000Z&refresh=25
-```
+1. Crie Products/Prices (Pro USD/BRL, temas, bundle).
+2. Cole os Price IDs no `.env.local`.
+3. Webhook endpoint: `/api/webhooks/stripe` (eventos: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`).
+4. Habilite Pix (BRL) e cartão via Dynamic Payment Methods no Dashboard — **não** fixe `payment_method_types` no código.
 
-## Duas saídas
+## Rotas principais
 
-### Overlay HTML (Browser Source)
+| Rota | Descrição |
+|------|-----------|
+| `/` | Builder Free + pricing |
+| `/login` | Auth e-mail/Google |
+| `/dashboard` | Contas, config, copy OBS link, checkout |
+| `/overlay?username=…` | Overlay legado **sempre Free** |
+| `/overlay/[token]` | Overlay tokenizado (Free/Pro) |
+| `GET /api/stats` | JSON (cap Free sem `token`) |
+| `POST /api/checkout` | Stripe Checkout |
+| `POST /api/webhooks/stripe` | Liberação Pro / temas |
 
-```
-https://seu-dominio/overlay?username=hikaru&type=blitz&period=session&sessionStart=...&refresh=25
-```
+## Free vs Pro
 
-No OBS: Fonte → Browser → cole a URL → largura ~420px, altura ~220px, fundo transparente.
+- **Free:** ELO atual, W/D/L, tema Dark Minimalist, 1 provider
+- **Pro:** Δ ELO, win rate, streak, dual Chess.com+Lichess, cores/fonte, alertas, logo sponsor
+- **Brand Kits:** compra avulsa ou Mega Bundle
 
-### Texto puro
+## OBS
 
-```
-GET /api/stats.txt?username=hikaru&type=blitz&period=session&sessionStart=...
-```
-
-Formato:
-
-```
-3-1-2
-W 3 | D 1 | L 2 | dRating +12
-```
-
-O **Text (GDI+)** do OBS não lê URL. Opções:
-
-1. Browser Source apontando para `/api/stats.txt?...`
-2. Script local gravando arquivo a cada 25s:
-
-```bash
-curl -s "https://seu-dominio/api/stats.txt?username=hikaru&type=blitz&period=session&sessionStart=..." -o stats.txt
-```
-
-Depois use Text (GDI+) com “Ler de um arquivo”.
-
-## Parâmetros
-
-| Parâmetro | Descrição |
-|-----------|-----------|
-| `username` | Conta Chess.com |
-| `name` | Título de exibição do overlay (opcional, máx. 40 caracteres) |
-| `type` | bullet, rapid, blitz, daily, daily960, puzzles, manual |
-| `period` | session, today, week, month |
-| `sessionStart` | ISO 8601 do **Iniciar Contador** (obrigatório para sessão estável no OBS) |
-| `from` / `to` | Intervalo YYYY-MM-DD |
-| `refresh` | Segundos entre atualizações (mín. 20, padrão 25) |
-| `timeControl` | Para manual (ex: 600+0) |
-| `initialRating` | Para puzzles |
-| `overrideRating` | Força rating atual em puzzles |
-
-## API JSON
-
-```
-GET /api/stats?username=hikaru&type=blitz&period=session&sessionStart=2026-08-31T10:00:00.000Z
-```
-
-Resposta:
-
-```json
-{
-  "username": "hikaru",
-  "type": "blitz",
-  "period": { "from": "2026-08-31", "to": "2026-08-31" },
-  "stats": { "wins": 3, "draws": 1, "losses": 2, "games": 6, "ratingDelta": 12 },
-  "meta": { "ratedGames": 6, "fetchedAt": "...", "mode": "games" }
-}
-```
-
-## PubAPI Chess.com
-
-- User-Agent: `ChessStatsOverlay/1.0 (Alberto Horta; https://github.com/albertosire)` (override em `CHESS_COM_USER_AGENT` se fizer fork)
-- Polling 20–30s; ETag / If-None-Match no arquivo mensal para reduzir carga
-- Períodos que cabem no mês vigente buscam só `.../games/{YYYY}/{MM}`
-- Puzzles: a API pública não expõe rating atual; use `initialRating` + `overrideRating`
-- Arquivo mensal pode atrasar alguns minutos após o fim da partida
-- Histórico muito grande pode retornar 403 se consultado em excesso
-
-## Deploy
-
-Compatível com Vercel:
-
-```bash
-npm run build
-```
+Dashboard → **Copiar link OBS** → Browser Source (~420×220, fundo transparente).
