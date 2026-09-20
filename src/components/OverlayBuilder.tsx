@@ -1,36 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   buildAbsoluteUrl,
   buildApiPath,
   buildIframeSnippet,
   buildOverlayPath,
   buildTextApiPath,
-  DEFAULT_REFRESH_SECONDS,
+  DEFAULT_OVERLAY_CONFIG,
+  FONT_OPTIONS,
   GAME_TYPE_OPTIONS,
   MAX_OVERLAY_NAME_LENGTH,
   MAX_REFRESH_SECONDS,
   MIN_REFRESH_SECONDS,
   PERIOD_OPTIONS,
   validateOverlayConfig,
+  type ChessSite,
   type OverlayConfig,
 } from "@/lib/chess-com/build-url";
 import { PROVIDER_OPTIONS } from "@/lib/providers/registry";
-
-const DEFAULT_CONFIG: OverlayConfig = {
-  username: "",
-  name: "",
-  type: "blitz",
-  periodMode: "session",
-  from: "",
-  to: "",
-  refresh: DEFAULT_REFRESH_SECONDS,
-  timeControl: "600+0",
-  initialRating: "",
-  provider: "chesscom",
-};
+import {
+  exportOverlayConfigJson,
+  importOverlayConfigJson,
+  loadOverlayConfig,
+  saveOverlayConfig,
+} from "@/lib/overlay/storage";
 
 type OutputTab = "url" | "iframe" | "api" | "text";
 
@@ -60,12 +55,31 @@ function formatSessionStart(iso: string): string {
   return new Date(iso).toLocaleString("pt-BR");
 }
 
+const inputClass =
+  "w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2";
+
 export function OverlayBuilder() {
-  const [config, setConfig] = useState<OverlayConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<OverlayConfig>(DEFAULT_OVERLAY_CONFIG);
+  const [hydrated, setHydrated] = useState(false);
   const [outputTab, setOutputTab] = useState<OutputTab>("url");
-  const [origin] = useState(() =>
-    typeof window === "undefined" ? "" : window.location.origin,
-  );
+  const [origin, setOrigin] = useState("");
+  const [storageMessage, setStorageMessage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+    setConfig(loadOverlayConfig());
+    setHydrated(true);
+  }, []);
+
+  // Persist only after hydration; debounce so rapid edits / remounts don't wipe storage.
+  useEffect(() => {
+    if (!hydrated) return;
+    const timer = window.setTimeout(() => {
+      saveOverlayConfig(config);
+    }, 200);
+    return () => window.clearTimeout(timer);
+  }, [config, hydrated]);
 
   const errors = useMemo(() => validateOverlayConfig(config), [config]);
   const isValid = errors.length === 0;
@@ -95,49 +109,139 @@ export function OverlayBuilder() {
     update("sessionStart", new Date().toISOString());
   }
 
+  function handleExport() {
+    const blob = new Blob([exportOverlayConfigJson(config)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "chess-overlay-config.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setStorageMessage("Configuração exportada.");
+  }
+
+  function handleImportFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const text = String(reader.result ?? "");
+        const next = importOverlayConfigJson(text);
+        setConfig(next);
+        setStorageMessage("Configuração importada.");
+      } catch {
+        setStorageMessage("JSON inválido. Confira o arquivo e tente de novo.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
         <div>
-          <h2 className="text-xl font-semibold text-white">Monte seu overlay Free</h2>
+          <h2 className="text-xl font-semibold text-white">Monte seu overlay</h2>
           <p className="mt-1 text-sm text-zinc-400">
-            Preview gratuito: ELO atual + W/D/L. Para Δ ELO, streaks e dual site,{" "}
-            <Link href="/dashboard" className="text-emerald-400 hover:underline">
-              entre no Dashboard Pro
-            </Link>
-            .
+            Configuração salva automaticamente neste navegador. Exporte o JSON para backup ou
+            outro PC. A URL do OBS leva todos os parâmetros na query string.
           </p>
         </div>
 
-        <label className="block space-y-2">
-          <span className="text-sm font-medium text-zinc-200">Site</span>
-          <select
-            value={config.provider ?? "chesscom"}
-            onChange={(event) =>
-              update("provider", event.target.value as OverlayConfig["provider"])
-            }
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            className="rounded-lg border border-zinc-600 px-3 py-1.5 text-sm text-zinc-200 hover:border-zinc-400"
           >
-            {PROVIDER_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="block space-y-2">
-          <span className="text-sm font-medium text-zinc-200">
-            Usuário {config.provider === "lichess" ? "Lichess" : "Chess.com"}
-          </span>
+            Exportar JSON
+          </button>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="rounded-lg border border-zinc-600 px-3 py-1.5 text-sm text-zinc-200 hover:border-zinc-400"
+          >
+            Importar JSON
+          </button>
           <input
-            type="text"
-            value={config.username}
-            onChange={(event) => update("username", event.target.value)}
-            placeholder="ex: hikaru"
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) handleImportFile(file);
+              event.target.value = "";
+            }}
           />
-        </label>
+        </div>
+        {storageMessage ? (
+          <p className="text-xs text-emerald-400">{storageMessage}</p>
+        ) : null}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-zinc-200">Site principal</span>
+            <select
+              value={config.provider ?? "chesscom"}
+              onChange={(event) =>
+                update("provider", event.target.value as ChessSite)
+              }
+              className={inputClass}
+            >
+              {PROVIDER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-zinc-200">
+              Usuário principal
+            </span>
+            <input
+              type="text"
+              value={config.username}
+              onChange={(event) => update("username", event.target.value)}
+              placeholder="ex: hikaru"
+              className={inputClass}
+            />
+          </label>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-zinc-200">
+              Site secundário (opcional)
+            </span>
+            <select
+              value={config.provider2 ?? "lichess"}
+              onChange={(event) =>
+                update("provider2", event.target.value as ChessSite)
+              }
+              className={inputClass}
+            >
+              {PROVIDER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-zinc-200">
+              Usuário secundário
+            </span>
+            <input
+              type="text"
+              value={config.username2 ?? ""}
+              onChange={(event) => update("username2", event.target.value)}
+              placeholder="deixe vazio para um só site"
+              className={inputClass}
+            />
+          </label>
+        </div>
 
         <label className="block space-y-2">
           <span className="text-sm font-medium text-zinc-200">Nome do overlay</span>
@@ -147,11 +251,8 @@ export function OverlayBuilder() {
             maxLength={MAX_OVERLAY_NAME_LENGTH}
             onChange={(event) => update("name", event.target.value)}
             placeholder="ex: Blitz da live"
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+            className={inputClass}
           />
-          <p className="text-xs text-zinc-500">
-            Opcional. Sem nome, o overlay mostra o usuário do Chess.com.
-          </p>
         </label>
 
         <label className="block space-y-2">
@@ -159,7 +260,7 @@ export function OverlayBuilder() {
           <select
             value={config.type}
             onChange={(event) => update("type", event.target.value as OverlayConfig["type"])}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+            className={inputClass}
           >
             {GAME_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -180,7 +281,7 @@ export function OverlayBuilder() {
               value={config.timeControl ?? ""}
               onChange={(event) => update("timeControl", event.target.value)}
               placeholder="600+0 ou 3+2"
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+              className={inputClass}
             />
           </label>
         ) : null}
@@ -193,11 +294,8 @@ export function OverlayBuilder() {
               value={config.initialRating ?? ""}
               onChange={(event) => update("initialRating", event.target.value)}
               placeholder="ex: 2500"
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+              className={inputClass}
             />
-            <p className="text-xs text-zinc-500">
-              Informe seu rating de problemas no início da transmissão para acompanhar a variação.
-            </p>
           </label>
         ) : null}
 
@@ -208,7 +306,7 @@ export function OverlayBuilder() {
             onChange={(event) =>
               update("periodMode", event.target.value as OverlayConfig["periodMode"])
             }
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+            className={inputClass}
           >
             {PERIOD_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -251,7 +349,7 @@ export function OverlayBuilder() {
                 type="date"
                 value={config.from ?? ""}
                 onChange={(event) => update("from", event.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+                className={inputClass}
               />
             </label>
             <label className="block space-y-2">
@@ -260,7 +358,7 @@ export function OverlayBuilder() {
                 type="date"
                 value={config.to ?? ""}
                 onChange={(event) => update("to", event.target.value)}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white outline-none ring-emerald-500/40 focus:ring-2"
+                className={inputClass}
               />
             </label>
           </div>
@@ -280,6 +378,79 @@ export function OverlayBuilder() {
             className="w-full accent-emerald-500"
           />
         </label>
+
+        <fieldset className="space-y-2 rounded-lg border border-zinc-700 p-3">
+          <legend className="px-1 text-sm font-medium text-zinc-200">Colunas e alertas</legend>
+          {(
+            [
+              ["showDelta", "Δ ELO"],
+              ["showWinRate", "Win rate %"],
+              ["showStreak", "Streak"],
+              ["showAlerts", "Alertas de vitória / marco"],
+            ] as const
+          ).map(([key, label]) => (
+            <label key={key} className="flex items-center gap-2 text-sm text-zinc-300">
+              <input
+                type="checkbox"
+                checked={config[key] !== false}
+                onChange={(event) => update(key, event.target.checked)}
+                className="accent-emerald-500"
+              />
+              {label}
+            </label>
+          ))}
+        </fieldset>
+
+        <fieldset className="space-y-3 rounded-lg border border-zinc-700 p-3">
+          <legend className="px-1 text-sm font-medium text-zinc-200">Aparência</legend>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block space-y-2">
+              <span className="text-sm text-zinc-300">Cor primária</span>
+              <input
+                type="color"
+                value={config.primaryColor ?? "#18181b"}
+                onChange={(event) => update("primaryColor", event.target.value)}
+                className="h-10 w-full cursor-pointer rounded border border-zinc-700 bg-zinc-950"
+              />
+            </label>
+            <label className="block space-y-2">
+              <span className="text-sm text-zinc-300">Cor accent</span>
+              <input
+                type="color"
+                value={config.accentColor ?? "#22c55e"}
+                onChange={(event) => update("accentColor", event.target.value)}
+                className="h-10 w-full cursor-pointer rounded border border-zinc-700 bg-zinc-950"
+              />
+            </label>
+          </div>
+          <label className="block space-y-2">
+            <span className="text-sm text-zinc-300">Fonte</span>
+            <select
+              value={config.fontFamily ?? "Inter"}
+              onChange={(event) => update("fontFamily", event.target.value)}
+              className={inputClass}
+            >
+              {FONT_OPTIONS.map((font) => (
+                <option key={font} value={font}>
+                  {font}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm text-zinc-300">URL da logo do patrocinador</span>
+            <input
+              type="url"
+              value={config.logoUrl ?? ""}
+              onChange={(event) => update("logoUrl", event.target.value)}
+              placeholder="https://…"
+              className={inputClass}
+            />
+            <p className="text-xs text-zinc-500">
+              Use uma imagem hospedada publicamente.
+            </p>
+          </label>
+        </fieldset>
 
         {errors.length > 0 ? (
           <ul className="space-y-1 rounded-lg border border-red-500/30 bg-red-950/30 px-3 py-2 text-sm text-red-300">
@@ -325,10 +496,9 @@ export function OverlayBuilder() {
         </div>
 
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-          <h2 className="text-xl font-semibold text-white">Use no destino</h2>
+          <h2 className="text-xl font-semibold text-white">Use no OBS</h2>
           <p className="mt-1 text-sm text-zinc-400">
-            Copie a URL HTML para OBS Browser Source, o texto puro para arquivo/local, ou o JSON
-            para integrações.
+            Copie a URL HTML para Browser Source, o texto puro, ou o JSON da API.
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -386,23 +556,8 @@ export function OverlayBuilder() {
 
           {outputTab === "url" && isValid ? (
             <p className="mt-4 text-xs text-zinc-500">
-              No OBS: Fonte → Browser → cole a URL → largura ~420px, altura ~220px, fundo
-              transparente ativado.
-            </p>
-          ) : null}
-
-          {outputTab === "iframe" && isValid ? (
-            <p className="mt-4 text-xs text-zinc-500">
-              Cole o snippet em páginas HTML, widgets de stream ou ferramentas que aceitam embed via
-              iframe.
-            </p>
-          ) : null}
-
-          {outputTab === "text" && isValid ? (
-            <p className="mt-4 text-xs text-zinc-500">
-              O Text GDI+ do OBS não lê URL. Use Browser Source nesta URL, ou um comando local:
-              {" "}
-              <code className="text-zinc-400">curl -s &quot;URL&quot; -o stats.txt</code> a cada 25s.
+              No OBS: Fonte → Browser → cole a URL → largura ~420px (ou ~840px com dual), altura
+              ~220px, fundo transparente ativado.
             </p>
           ) : null}
         </div>

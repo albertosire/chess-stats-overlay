@@ -48,8 +48,8 @@ export interface StatsProvider {
   fetchStats(params: NormalizedStatsParams): Promise<NormalizedStatsResult>;
 }
 
+/** Display flags for the overlay UI (all features are free / OSS). */
 export interface OverlayEntitlements {
-  isPro: boolean;
   showDeltaElo: boolean;
   showWinRate: boolean;
   showStreak: boolean;
@@ -58,46 +58,15 @@ export interface OverlayEntitlements {
   allowCustomTheme: boolean;
   allowSponsorLogo: boolean;
   allowAlerts: boolean;
-  activeThemeId: string;
 }
 
-export function resolveEntitlements(
-  isPro: boolean,
-  flags?: {
-    show_delta_elo?: boolean;
-    show_winrate?: boolean;
-    show_streak?: boolean;
-    active_theme_id?: string;
-    custom_sponsor_logo_url?: string | null;
-  },
-): OverlayEntitlements {
-  const freeTheme = "default-dark";
-  return {
-    isPro,
-    showCurrentRating: true,
-    showDeltaElo: isPro && Boolean(flags?.show_delta_elo),
-    showWinRate: isPro && Boolean(flags?.show_winrate),
-    showStreak: isPro && Boolean(flags?.show_streak),
-    allowDualProvider: isPro,
-    allowCustomTheme: isPro,
-    allowSponsorLogo: isPro && Boolean(flags?.custom_sponsor_logo_url),
-    allowAlerts: isPro,
-    activeThemeId: isPro ? (flags?.active_theme_id ?? freeTheme) : freeTheme,
-  };
-}
-
-export function applyFreeCap(
-  result: NormalizedStatsResult,
-  entitlements: OverlayEntitlements,
-): NormalizedStatsResult {
-  return {
-    ...result,
-    stats: {
-      ...result.stats,
-      ratingDelta: entitlements.showDeltaElo ? result.stats.ratingDelta : null,
-      winRate: entitlements.showWinRate ? result.stats.winRate : null,
-      streak: entitlements.showStreak ? result.stats.streak : 0,
-      currentRating: entitlements.showCurrentRating ? result.stats.currentRating : result.stats.currentRating,
-    },
-  };
-}
+export const ALL_FEATURES_ON: OverlayEntitlements = {
+  showCurrentRating: true,
+  showDeltaElo: true,
+  showWinRate: true,
+  showStreak: true,
+  allowDualProvider: true,
+  allowCustomTheme: true,
+  allowSponsorLogo: true,
+  allowAlerts: true,
+};
