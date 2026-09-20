@@ -1,56 +1,40 @@
 # Chess Stats Overlay
 
-Overlay HTML para OBS com estatísticas Chess.com / Lichess. Modelo freemium (Free + Pro + Brand Kits).
+Overlay HTML para OBS com estatísticas Chess.com / Lichess. Gratuito e open source — configuração salva no navegador (`localStorage`); a URL do OBS leva os parâmetros na query string.
 
 ## Stack
 
 - Next.js 16 (App Router) + TypeScript + Tailwind
-- Supabase (Auth, Postgres, RLS, Storage)
-- Stripe (assinatura Pro + temas avulsos)
 - Framer Motion (alertas no overlay)
+- APIs públicas Chess.com / Lichess (proxy em `/api/stats`)
 
 ## Setup rápido
 
 ```bash
 npm install
-cp .env.example .env.local
-# Preencha Supabase + Stripe
-npx supabase db push   # ou aplique supabase/migrations/*.sql no SQL Editor
+cp .env.example .env.local   # opcional
 npm run dev
 ```
-
-### Supabase
-
-1. Crie um projeto e rode a migration `supabase/migrations/20260915030909_init_saas_schema.sql`.
-2. Ative Email + Google Auth.
-3. Configure Redirect URL: `http://localhost:3000/auth/callback` (e o domínio de produção).
-
-### Stripe
-
-1. Crie Products/Prices (Pro USD/BRL, temas, bundle).
-2. Cole os Price IDs no `.env.local`.
-3. Webhook endpoint: `/api/webhooks/stripe` (eventos: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`).
-4. Habilite Pix (BRL) e cartão via Dynamic Payment Methods no Dashboard — **não** fixe `payment_method_types` no código.
 
 ## Rotas principais
 
 | Rota | Descrição |
 |------|-----------|
-| `/` | Builder Free + pricing |
-| `/login` | Auth e-mail/Google |
-| `/dashboard` | Contas, config, copy OBS link, checkout |
-| `/overlay?username=…` | Overlay legado **sempre Free** |
-| `/overlay/[token]` | Overlay tokenizado (Free/Pro) |
-| `GET /api/stats` | JSON (cap Free sem `token`) |
-| `POST /api/checkout` | Stripe Checkout |
-| `POST /api/webhooks/stripe` | Liberação Pro / temas |
+| `/` | Builder (todas as features) + preview + copiar URL OBS |
+| `/overlay?username=…` | Overlay para Browser Source |
+| `GET /api/stats` | JSON de estatísticas |
+| `GET /api/stats.txt` | Texto puro |
 
-## Free vs Pro
+`/login` e `/dashboard` redirecionam para `/`. Links tokenizados `/overlay/[token]` exibem aviso de descontinuação.
 
-- **Free:** ELO atual, W/D/L, tema Dark Minimalist, 1 provider
-- **Pro:** Δ ELO, win rate, streak, dual Chess.com+Lichess, cores/fonte, alertas, logo sponsor
-- **Brand Kits:** compra avulsa ou Mega Bundle
+## Recursos
+
+- ELO atual, W/D/L, Δ ELO, win rate, streak
+- Dual Chess.com + Lichess
+- Cores, fonte e logo do patrocinador (URL pública)
+- Alertas de vitória / marcos de rating
+- Exportar / importar JSON da configuração
 
 ## OBS
 
-Dashboard → **Copiar link OBS** → Browser Source (~420×220, fundo transparente).
+Builder → **Copiar URL** → Fonte Browser (~420×220, ou ~840×220 com dual; fundo transparente).

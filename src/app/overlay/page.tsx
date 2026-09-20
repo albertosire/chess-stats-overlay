@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import OverlayClient from "./OverlayClient";
-import { resolveEntitlements } from "@/lib/providers/types";
 
 export default function OverlayPage() {
   return (
@@ -9,7 +8,7 @@ export default function OverlayPage() {
         <main className="p-4 text-white">Carregando overlay…</main>
       }
     >
-      <OverlayClient initialEntitlements={resolveEntitlements(false)} />
+      <OverlayClient />
     </Suspense>
   );
 }

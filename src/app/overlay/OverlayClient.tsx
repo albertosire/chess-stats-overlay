@@ -5,12 +5,16 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { StatsTable } from "@/components/StatsTable";
 import {
+  DEFAULT_ACCENT_COLOR,
+  DEFAULT_FONT_FAMILY,
+  DEFAULT_PRIMARY_COLOR,
   DEFAULT_REFRESH_SECONDS,
   MIN_REFRESH_SECONDS,
   normalizeOverlayName,
 } from "@/lib/chess-com/build-url";
-import type { NormalizedStatsResult, OverlayEntitlements } from "@/lib/providers/types";
-import { resolveEntitlements } from "@/lib/providers/types";
+import type { NormalizedStatsResult } from "@/lib/providers/types";
+import { entitlementsFromSearchParams } from "@/lib/overlay/display";
+import { isChessProviderId } from "@/lib/providers/registry";
 
 const SESSION_KEY = "chess-overlay-session-start";
 const INITIAL_RATING_KEY = "chess-overlay-initial-rating";
@@ -43,61 +47,33 @@ function readInitialRating(fallback?: string | null): string | null {
   return sessionStorage.getItem(INITIAL_RATING_KEY);
 }
 
-export type OverlayClientProps = {
-  token?: string;
-  initialEntitlements?: OverlayEntitlements;
-  themeId?: string;
-  primaryColor?: string;
-  accentColor?: string;
-  fontFamily?: string;
-  sponsorLogoUrl?: string | null;
-  displayName?: string | null;
-  refreshSeconds?: number;
-  dualProviders?: boolean;
-  primaryProvider?: string;
-  secondaryProvider?: string | null;
-  forcedPeriod?: string;
-  forcedType?: string;
-};
-
-export default function OverlayClient({
-  token,
-  initialEntitlements,
-  themeId,
-  primaryColor,
-  accentColor,
-  fontFamily,
-  sponsorLogoUrl,
-  displayName,
-  refreshSeconds: refreshOverride,
-  dualProviders,
-  primaryProvider = "chesscom",
-  secondaryProvider,
-  forcedPeriod,
-  forcedType,
-}: OverlayClientProps = {}) {
+export default function OverlayClient() {
   const searchParams = useSearchParams();
-  const params = useMemo(() => {
-    const next = new URLSearchParams(searchParams.toString());
-    if (forcedPeriod && !next.get("period") && !next.get("from")) {
-      next.set("period", forcedPeriod);
-    }
-    if (forcedType && !next.get("type")) {
-      next.set("type", forcedType);
-    }
-    return next;
-  }, [searchParams, forcedPeriod, forcedType]);
+  const params = useMemo(() => new URLSearchParams(searchParams.toString()), [searchParams]);
 
   const refreshSeconds = Math.max(
     MIN_REFRESH_SECONDS,
-    refreshOverride ?? Number(params.get("refresh") ?? DEFAULT_REFRESH_SECONDS),
+    Number(params.get("refresh") ?? DEFAULT_REFRESH_SECONDS),
   );
   const useSession = isSessionPeriod(params);
   const gameType = params.get("type");
   const urlSessionStart = params.get("sessionStart");
   const urlInitialRating = params.get("initialRating");
-  const overlayName = displayName || normalizeOverlayName(params.get("name"));
-  const entitlements = initialEntitlements ?? resolveEntitlements(false);
+  const overlayName = normalizeOverlayName(params.get("name"));
+  const entitlements = useMemo(() => entitlementsFromSearchParams(params), [params]);
+
+  const primaryColor = params.get("primaryColor") || DEFAULT_PRIMARY_COLOR;
+  const accentColor = params.get("accentColor") || DEFAULT_ACCENT_COLOR;
+  const fontFamily = params.get("font") || DEFAULT_FONT_FAMILY;
+  const sponsorLogoUrl = params.get("logo")?.trim() || null;
+
+  const primaryProvider = isChessProviderId(params.get("provider"))
+    ? params.get("provider")!
+    : "chesscom";
+  const username2 = params.get("username2")?.trim() || null;
+  const provider2Raw = params.get("provider2");
+  const secondaryProvider =
+    username2 && isChessProviderId(provider2Raw) ? provider2Raw : username2 ? "lichess" : null;
 
   const sessionStart = useMemo(() => {
     if (!useSession) return null;
@@ -111,7 +87,6 @@ export default function OverlayClient({
   }, [urlInitialRating]);
 
   const configError = useMemo(() => {
-    if (token) return null;
     if (!params.get("username") || !gameType) {
       return "Informe username e type na URL.";
     }
@@ -119,13 +94,15 @@ export default function OverlayClient({
       return "Para type=puzzles, informe initialRating na URL.";
     }
     return null;
-  }, [params, gameType, initialRating, urlInitialRating, token]);
+  }, [params, gameType, initialRating, urlInitialRating]);
 
   const apiUrls = useMemo(() => {
-    function build(provider: string) {
+    function build(provider: string, username: string) {
       const query = new URLSearchParams(params);
-      if (token) query.set("token", token);
+      query.delete("username2");
+      query.delete("provider2");
       query.set("provider", provider);
+      query.set("username", username);
       if (useSession && sessionStart) {
         query.set("sessionStart", sessionStart);
         query.set("period", query.get("period") || "session");
@@ -136,16 +113,16 @@ export default function OverlayClient({
       return `/api/stats?${query.toString()}`;
     }
 
-    const primary = build(token ? primaryProvider : params.get("provider") || "chesscom");
+    const primaryUsername = params.get("username") || "";
+    const primary = build(primaryProvider, primaryUsername);
     const secondary =
-      token && dualProviders && secondaryProvider ? build(secondaryProvider) : null;
+      username2 && secondaryProvider ? build(secondaryProvider, username2) : null;
     return { primary, secondary };
   }, [
     params,
-    token,
     primaryProvider,
-    dualProviders,
     secondaryProvider,
+    username2,
     useSession,
     sessionStart,
     initialRating,
@@ -187,7 +164,11 @@ export default function OverlayClient({
           const secondaryPayload = await secondaryRes.json();
           if (secondaryRes.ok) {
             setSecondaryData(secondaryPayload as NormalizedStatsResult);
+          } else {
+            setSecondaryData(null);
           }
+        } else {
+          setSecondaryData(null);
         }
         setError(null);
       } catch (fetchError) {
@@ -248,7 +229,6 @@ export default function OverlayClient({
               title={overlayName ?? undefined}
               loading={refreshing}
               entitlements={entitlements}
-              themeId={themeId}
               primaryColor={primaryColor}
               accentColor={accentColor}
               fontFamily={fontFamily}
@@ -259,7 +239,7 @@ export default function OverlayClient({
           </motion.div>
         ) : null}
 
-        {secondaryData && dualProviders ? (
+        {secondaryData ? (
           <motion.div
             key="secondary"
             initial={{ opacity: 0, y: 8 }}
@@ -271,7 +251,6 @@ export default function OverlayClient({
               title={overlayName ?? undefined}
               loading={refreshing}
               entitlements={entitlements}
-              themeId={themeId}
               primaryColor={primaryColor}
               accentColor={accentColor}
               fontFamily={fontFamily}

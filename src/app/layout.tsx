@@ -14,10 +14,15 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Chess Stats Overlay",
-  description: "Overlay de estatísticas Chess.com para transmissões ao vivo",
+  description:
+    "Overlay gratuito e open source de estatísticas Chess.com / Lichess para OBS",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <body>{children}</body>

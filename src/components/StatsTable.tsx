@@ -1,16 +1,19 @@
 "use client";
 
 import type { NormalizedStatsResult, OverlayEntitlements } from "@/lib/providers/types";
-import { getTheme } from "@/lib/themes";
 import { typeLabel } from "@/lib/chess-com/params";
 import type { GameType } from "@/lib/providers/types";
+import {
+  alertTextOnAccent,
+  readableColorsForBackground,
+} from "@/lib/color-contrast";
+import { DEFAULT_OVERLAY_STYLES } from "@/lib/overlay/display";
 
 interface StatsTableProps {
   data: NormalizedStatsResult;
   title?: string;
   loading?: boolean;
   entitlements?: OverlayEntitlements;
-  themeId?: string;
   primaryColor?: string;
   accentColor?: string;
   fontFamily?: string;
@@ -30,7 +33,6 @@ export function StatsTable({
   title,
   loading,
   entitlements,
-  themeId,
   primaryColor,
   accentColor,
   fontFamily,
@@ -40,11 +42,22 @@ export function StatsTable({
 }: StatsTableProps) {
   const isPuzzles = data.meta.mode === "puzzles";
   const displayName = title?.trim() || data.username;
-  const theme = getTheme(themeId ?? entitlements?.activeThemeId ?? "default-dark");
-  const showDelta = entitlements?.showDeltaElo ?? false;
-  const showWinRate = entitlements?.showWinRate ?? false;
-  const showStreak = entitlements?.showStreak ?? false;
+  const styles = DEFAULT_OVERLAY_STYLES;
+  const showDelta = entitlements?.showDeltaElo ?? true;
+  const showWinRate = entitlements?.showWinRate ?? true;
+  const showStreak = entitlements?.showStreak ?? true;
   const showRating = entitlements?.showCurrentRating ?? true;
+
+  const readable = primaryColor
+    ? readableColorsForBackground(primaryColor, { alphaHint: 0xcc / 0xff })
+    : null;
+
+  const textColor = readable?.text ?? styles.text;
+  const mutedColor = readable?.muted ?? styles.muted;
+  const winColor = readable?.win ?? styles.win;
+  const lossColor = readable?.loss ?? styles.loss;
+  const alertBg = accentColor || styles.accent;
+  const alertFg = alertTextOnAccent(alertBg);
 
   const delta = data.stats.ratingDelta ?? 0;
   const justWon =
@@ -62,24 +75,29 @@ export function StatsTable({
       className="inline-block rounded-xl px-5 py-4 backdrop-blur-sm"
       style={{
         fontFamily: fontFamily || "system-ui, sans-serif",
-        background: primaryColor ? `${primaryColor}cc` : theme.styles.background,
-        border: `1px solid ${accentColor || theme.styles.border}`,
-        color: theme.styles.text,
+        background: primaryColor ? `${primaryColor}cc` : styles.background,
+        border: `1px solid ${accentColor || styles.border}`,
+        color: textColor,
       }}
     >
       {justWon || milestone ? (
         <div
           className="mb-2 animate-pulse rounded-md px-2 py-1 text-center text-xs font-semibold"
-          style={{ background: accentColor || theme.styles.accent, color: "#04110a" }}
+          style={{ background: alertBg, color: alertFg }}
         >
           {justWon ? "🔥 Vitória!" : `⭐ Marco ${data.stats.currentRating} ELO!`}
         </div>
       ) : null}
 
-      <div className="mb-3 flex items-center justify-between gap-4 text-sm" style={{ color: theme.styles.muted }}>
-        <span className="font-semibold" style={{ color: theme.styles.text }}>
+      <div
+        className="mb-3 flex items-center justify-between gap-4 text-sm"
+        style={{ color: mutedColor }}
+      >
+        <span className="font-semibold" style={{ color: textColor }}>
           {displayName}
-          <span className="ml-2 text-xs opacity-70">{data.provider === "lichess" ? "Lichess" : "Chess.com"}</span>
+          <span className="ml-2 text-xs opacity-70">
+            {data.provider === "lichess" ? "Lichess" : "Chess.com"}
+          </span>
         </span>
         <span>
           {typeLabel(data.type as GameType)} · {data.period.from} → {data.period.to}
@@ -89,7 +107,7 @@ export function StatsTable({
 
       <table className="w-full min-w-[320px] border-collapse text-center text-lg">
         <thead>
-          <tr className="text-sm uppercase tracking-wide" style={{ color: theme.styles.muted }}>
+          <tr className="text-sm uppercase tracking-wide" style={{ color: mutedColor }}>
             {showRating ? <th className="px-3 py-2 font-medium">ELO</th> : null}
             {!isPuzzles ? (
               <>
@@ -110,11 +128,11 @@ export function StatsTable({
             ) : null}
             {!isPuzzles ? (
               <>
-                <td className="px-3 py-2" style={{ color: theme.styles.win }}>
+                <td className="px-3 py-2" style={{ color: winColor }}>
                   {data.stats.wins}
                 </td>
                 <td className="px-3 py-2">{data.stats.draws}</td>
-                <td className="px-3 py-2" style={{ color: theme.styles.loss }}>
+                <td className="px-3 py-2" style={{ color: lossColor }}>
                   {data.stats.losses}
                 </td>
               </>
@@ -123,8 +141,7 @@ export function StatsTable({
               <td
                 className="px-3 py-2"
                 style={{
-                  color:
-                    delta > 0 ? theme.styles.win : delta < 0 ? theme.styles.loss : theme.styles.text,
+                  color: delta > 0 ? winColor : delta < 0 ? lossColor : textColor,
                 }}
               >
                 {formatDelta(data.stats.ratingDelta)}
@@ -145,12 +162,12 @@ export function StatsTable({
       </table>
 
       {!isPuzzles ? (
-        <p className="mt-2 text-center text-xs" style={{ color: theme.styles.muted }}>
+        <p className="mt-2 text-center text-xs" style={{ color: mutedColor }}>
           {data.stats.games} partidas · {data.meta.ratedGames} rated
         </p>
       ) : null}
 
-      {sponsorLogoUrl && entitlements?.allowSponsorLogo ? (
+      {sponsorLogoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={sponsorLogoUrl}
@@ -159,12 +176,12 @@ export function StatsTable({
         />
       ) : null}
 
-      <p className="mt-1 text-center text-[10px]" style={{ color: theme.styles.muted }}>
+      <p className="mt-1 text-center text-[10px]" style={{ color: mutedColor }}>
         Atualizado: {new Date(data.meta.fetchedAt).toLocaleTimeString("pt-BR")}
       </p>
 
       {data.meta.note ? (
-        <p className="mt-2 max-w-md text-center text-xs" style={{ color: theme.styles.muted }}>
+        <p className="mt-2 max-w-md text-center text-xs" style={{ color: mutedColor }}>
           {data.meta.note}
         </p>
       ) : null}

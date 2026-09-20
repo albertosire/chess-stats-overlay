@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import LoginClient from "./LoginClient";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return (
-    <Suspense fallback={<main className="p-8 text-zinc-300">Carregando…</main>}>
-      <LoginClient />
-    </Suspense>
-  );
+export default function LoginRedirect() {
+  redirect("/");
 }
