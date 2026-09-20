@@ -447,7 +447,7 @@ export function OverlayBuilder() {
               className={inputClass}
             />
             <p className="text-xs text-zinc-500">
-              Use uma imagem hospedada publicamente (sem upload no servidor).
+              Use uma imagem hospedada publicamente.
             </p>
           </label>
         </fieldset>

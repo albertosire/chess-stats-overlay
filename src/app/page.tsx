@@ -7,8 +7,8 @@ export default function Home() {
         <h1 className="text-3xl font-bold">Chess Stats Overlay</h1>
         <p className="max-w-3xl text-zinc-400">
           Overlay gratuito e open source para OBS com estatísticas Chess.com e Lichess. Δ ELO,
-          win rate, streak, dual site, cores, alertas e logo — tudo liberado. A configuração fica
-          no seu navegador; a URL do OBS carrega os parâmetros.
+          win rate, streak, dual site, cores, alertas e logo. A configuração fica no seu navegador;
+          a URL do OBS carrega os parâmetros.
         </p>
         <p className="text-sm text-zinc-500">
           Projeto open source de{" "}
