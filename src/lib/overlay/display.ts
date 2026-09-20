@@ -1,15 +1,15 @@
 import type { OverlayEntitlements } from "@/lib/providers/types";
 import { parseFlagParam } from "@/lib/chess-com/build-url";
 
-/** Default Dark Minimalist styles (replaces theme marketplace). */
+/** Default ink-on-board styles (preto + sépia). */
 export const DEFAULT_OVERLAY_STYLES = {
-  background: "rgba(0,0,0,0.55)",
-  border: "rgba(255,255,255,0.15)",
-  text: "#ffffff",
-  muted: "#a1a1aa",
-  win: "#34d399",
-  loss: "#f87171",
-  accent: "#22c55e",
+  background: "rgba(17,17,17,0.72)",
+  border: "rgba(196,165,116,0.45)",
+  text: "#f4ede3",
+  muted: "#c4b5a0",
+  win: "#c5d4b0",
+  loss: "#e8b4a4",
+  accent: "#c4a574",
 } as const;
 
 /** Build display flags from overlay URL search params (all features free). */

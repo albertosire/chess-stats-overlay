@@ -8,9 +8,48 @@ export const MIN_REFRESH_SECONDS = 20;
 export const MAX_REFRESH_SECONDS = 120;
 export const MAX_OVERLAY_NAME_LENGTH = 40;
 
-export const DEFAULT_PRIMARY_COLOR = "#18181b";
-export const DEFAULT_ACCENT_COLOR = "#22c55e";
+export const DEFAULT_PRIMARY_COLOR = "#111111";
+export const DEFAULT_ACCENT_COLOR = "#c4a574";
 export const DEFAULT_FONT_FAMILY = "Inter";
+
+export const OVERLAY_PALETTES = [
+  {
+    id: "ink",
+    label: "Preto",
+    hint: "Tinta sobre o tabuleiro",
+    primary: "#111111",
+    accent: "#c4a574",
+    fontFamily: "Inter",
+  },
+  {
+    id: "paper",
+    label: "Branco",
+    hint: "Papel de partitura",
+    primary: "#f7f1e6",
+    accent: "#3d2b1f",
+    fontFamily: "Georgia",
+  },
+  {
+    id: "sepia",
+    label: "Sépia",
+    hint: "Coluna clássica de xadrez",
+    primary: "#3b2a1a",
+    accent: "#d4a574",
+    fontFamily: "Georgia",
+  },
+] as const;
+
+export type OverlayPaletteId = (typeof OVERLAY_PALETTES)[number]["id"];
+
+export function matchingOverlayPalette(
+  primary?: string,
+  accent?: string,
+): (typeof OVERLAY_PALETTES)[number] | null {
+  const p = primary?.trim().toLowerCase();
+  const a = accent?.trim().toLowerCase();
+  if (!p || !a) return null;
+  return OVERLAY_PALETTES.find((palette) => palette.primary === p && palette.accent === a) ?? null;
+}
 
 export interface OverlayConfig {
   username: string;

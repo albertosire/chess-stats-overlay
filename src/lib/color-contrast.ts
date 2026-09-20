@@ -5,19 +5,19 @@
  */
 
 const SOBER_LIGHT = {
-  text: "#f4f4f5", // zinc-100
-  muted: "#a1a1aa", // zinc-400
-  win: "#6ee7b7", // emerald-300 — soft, not neon
-  loss: "#fca5a5", // red-300
-  alertFg: "#18181b",
+  text: "#f4ede3",
+  muted: "#c4b5a0",
+  win: "#c5d4b0",
+  loss: "#e8b4a4",
+  alertFg: "#1a1410",
 } as const;
 
 const SOBER_DARK = {
-  text: "#18181b", // zinc-900
-  muted: "#52525b", // zinc-600
-  win: "#047857", // emerald-700
-  loss: "#b91c1c", // red-700
-  alertFg: "#fafafa",
+  text: "#1a1410",
+  muted: "#6b5c4e",
+  win: "#3f5d3a",
+  loss: "#8b3a2a",
+  alertFg: "#f4ede3",
 } as const;
 
 export type OverlayReadableColors = {
@@ -127,8 +127,8 @@ export function readableColorsForBackground(
   const effective = compositeOver({ ...parsed, a: alpha }, OBS_BACKDROP);
   const bgL = relativeLuminance(effective.r, effective.g, effective.b);
 
-  const lightL = relativeLuminance(244, 244, 245); // #f4f4f5
-  const darkL = relativeLuminance(24, 24, 27); // #18181b
+  const lightL = relativeLuminance(244, 237, 227); // #f4ede3
+  const darkL = relativeLuminance(26, 20, 16); // #1a1410
   const contrastLight = contrastRatio(lightL, bgL);
   const contrastDark = contrastRatio(darkL, bgL);
 
