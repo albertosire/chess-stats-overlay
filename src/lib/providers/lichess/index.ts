@@ -1,3 +1,11 @@
+import { ChessApiError } from "@/lib/errors";
+import {
+  computeRatingDelta,
+  computeStreak,
+  computeWinRate,
+  tallyOutcomes,
+  type GameOutcome,
+} from "@/lib/domain/stats";
 import type {
   GameType,
   NormalizedStatsParams,
@@ -6,6 +14,10 @@ import type {
 } from "../types";
 
 const USER_AGENT = "ChessStatsOverlay/1.0 (https://github.com/albertosire/chess-stats-overlay)";
+
+function isTimeoutError(error: unknown): boolean {
+  return error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+}
 
 interface LichessUser {
   username: string;
@@ -23,7 +35,7 @@ interface LichessGamePlayer {
   rating?: number;
 }
 
-interface LichessGame {
+export interface LichessGame {
   createdAt?: number;
   lastMoveAt?: number;
   status?: string;
@@ -53,16 +65,29 @@ function mapTypeToLichessPerf(type: GameType): string | null {
 }
 
 async function lichessFetch<T>(url: string): Promise<T> {
-  const response = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": USER_AGENT,
-    },
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": USER_AGENT,
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(12_000),
+    });
+  } catch (error) {
+    if (isTimeoutError(error)) throw new ChessApiError("timeout", 504);
+    throw new ChessApiError("unavailable", 503);
+  }
 
+  if (response.status === 404) {
+    throw new ChessApiError("not_found", 404);
+  }
+  if (response.status === 429) {
+    throw new ChessApiError("rate_limited", 429);
+  }
   if (!response.ok) {
-    throw new Error(`Lichess API ${response.status}: ${response.statusText}`);
+    throw new ChessApiError("unavailable", 503);
   }
 
   return (await response.json()) as T;
@@ -85,28 +110,83 @@ async function fetchLichessGames(
     params.set("perfType", perf);
   }
 
-  const response = await fetch(
-    `https://lichess.org/api/games/user/${encodeURIComponent(username)}?${params}`,
-    {
-      headers: {
-        Accept: "application/x-ndjson",
-        "User-Agent": USER_AGENT,
+  let response: Response;
+  try {
+    response = await fetch(
+      `https://lichess.org/api/games/user/${encodeURIComponent(username)}?${params}`,
+      {
+        headers: {
+          Accept: "application/x-ndjson",
+          "User-Agent": USER_AGENT,
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(12_000),
       },
-      cache: "no-store",
-    },
-  );
+    );
+  } catch (error) {
+    if (isTimeoutError(error)) throw new ChessApiError("timeout", 504);
+    throw new ChessApiError("unavailable", 503);
+  }
 
+  if (response.status === 404) {
+    throw new ChessApiError("not_found", 404);
+  }
+  if (response.status === 429) {
+    throw new ChessApiError("rate_limited", 429);
+  }
   if (!response.ok) {
-    throw new Error(`Lichess games API ${response.status}`);
+    throw new ChessApiError("unavailable", 503);
   }
 
   const text = await response.text();
+  return parseLichessNdjson(text);
+}
+
+export function parseLichessNdjson(text: string): LichessGame[] {
   if (!text.trim()) return [];
 
   return text
     .trim()
     .split("\n")
     .map((line) => JSON.parse(line) as LichessGame);
+}
+
+export function summarizeLichessGames(games: LichessGame[], username: string) {
+  let ratedGames = 0;
+  const ratedByTime: { endTime: number; rating: number }[] = [];
+  const outcomes: GameOutcome[] = [];
+
+  const sorted = [...games].sort(
+    (a, b) => (a.lastMoveAt ?? a.createdAt ?? 0) - (b.lastMoveAt ?? b.createdAt ?? 0),
+  );
+
+  for (const game of sorted) {
+    const side = sideOf(game, username);
+    if (!side) continue;
+
+    outcomes.push(outcomeFor(game, side));
+
+    const rating = game.players?.[side]?.rating;
+    if (game.rated && rating != null) {
+      ratedGames += 1;
+      ratedByTime.push({
+        endTime: game.lastMoveAt ?? game.createdAt ?? 0,
+        rating,
+      });
+    }
+  }
+
+  ratedByTime.sort((a, b) => a.endTime - b.endTime);
+  const tally = tallyOutcomes(outcomes);
+
+  return {
+    ...tally,
+    ratedGames,
+    ratingDelta: computeRatingDelta(ratedByTime.map((entry) => entry.rating)),
+    streak: computeStreak(outcomes),
+    winRate: computeWinRate(tally.wins, tally.draws, tally.losses),
+    lastRating: ratedByTime.at(-1)?.rating ?? null,
+  };
 }
 
 function sideOf(game: LichessGame, username: string): "white" | "black" | null {
@@ -168,54 +248,9 @@ export const lichessProvider: StatsProvider = {
       fetchLichessGames(params.username, params.from, params.to, perf),
     ]);
 
-    let wins = 0;
-    let draws = 0;
-    let losses = 0;
-    let ratedGames = 0;
-    const ratedByTime: { endTime: number; rating: number }[] = [];
-    const outcomes: Array<"win" | "draw" | "loss"> = [];
-
-    const sorted = [...games].sort(
-      (a, b) => (a.lastMoveAt ?? a.createdAt ?? 0) - (b.lastMoveAt ?? b.createdAt ?? 0),
-    );
-
-    for (const game of sorted) {
-      const side = sideOf(game, params.username);
-      if (!side) continue;
-
-      const outcome = outcomeFor(game, side);
-      outcomes.push(outcome);
-      if (outcome === "win") wins += 1;
-      else if (outcome === "draw") draws += 1;
-      else losses += 1;
-
-      const rating = game.players?.[side]?.rating;
-      if (game.rated && rating != null) {
-        ratedGames += 1;
-        ratedByTime.push({
-          endTime: game.lastMoveAt ?? game.createdAt ?? 0,
-          rating,
-        });
-      }
-    }
-
-    let ratingDelta: number | null = 0;
-    if (ratedByTime.length >= 2) {
-      ratingDelta =
-        ratedByTime[ratedByTime.length - 1].rating - ratedByTime[0].rating;
-    }
-
-    let streak = 0;
-    for (let i = outcomes.length - 1; i >= 0; i -= 1) {
-      if (outcomes[i] !== "win") break;
-      streak += 1;
-    }
-
-    const total = wins + draws + losses;
+    const summary = summarizeLichessGames(games, params.username);
     const currentRating =
-      (perf && user.perfs?.[perf]?.rating) ||
-      ratedByTime.at(-1)?.rating ||
-      null;
+      (perf && user.perfs?.[perf]?.rating) || summary.lastRating || null;
 
     return {
       provider: "lichess",
@@ -223,17 +258,17 @@ export const lichessProvider: StatsProvider = {
       type: params.type,
       period,
       stats: {
-        wins,
-        draws,
-        losses,
-        games: total,
-        ratingDelta,
+        wins: summary.wins,
+        draws: summary.draws,
+        losses: summary.losses,
+        games: summary.games,
+        ratingDelta: summary.ratingDelta,
         currentRating,
-        winRate: total === 0 ? null : Math.round((wins / total) * 1000) / 10,
-        streak,
+        winRate: summary.winRate,
+        streak: summary.streak,
       },
       meta: {
-        ratedGames,
+        ratedGames: summary.ratedGames,
         fetchedAt: new Date().toISOString(),
         mode: "games",
       },

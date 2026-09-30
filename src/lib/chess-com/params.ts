@@ -1,4 +1,5 @@
 import type { GameType, StatsParams } from "./types";
+import type { StatsParamErrorCode } from "@/lib/errors";
 
 const VALID_TYPES = new Set<GameType>([
   "bullet",
@@ -29,7 +30,7 @@ function parseDate(value: string | null): Date | null {
 
 function resolvePeriod(
   searchParams: URLSearchParams,
-): { from: Date; to: Date } | { error: string } {
+): { from: Date; to: Date } | { error: StatsParamErrorCode } {
   const period = searchParams.get("period");
   const now = new Date();
 
@@ -49,7 +50,7 @@ function resolvePeriod(
       case "session":
         return { from: now, to: endOfDay(now) };
       default:
-        return { error: `Período inválido: ${period}` };
+        return { error: "invalid_period" };
     }
   }
 
@@ -57,18 +58,18 @@ function resolvePeriod(
   const toRaw = searchParams.get("to");
 
   if (!fromRaw || !toRaw) {
-    return { error: "Informe from/to (YYYY-MM-DD) ou period." };
+    return { error: "missing_period" };
   }
 
   const from = parseDate(fromRaw);
   const to = parseDate(toRaw);
 
   if (!from || !to) {
-    return { error: "Datas from/to inválidas." };
+    return { error: "invalid_dates" };
   }
 
   if (from > to) {
-    return { error: "A data from deve ser anterior ou igual a to." };
+    return { error: "inverted_dates" };
   }
 
   return { from: startOfDay(from), to: endOfDay(to) };
@@ -76,20 +77,20 @@ function resolvePeriod(
 
 export function parseStatsParams(
   searchParams: URLSearchParams,
-): { params: StatsParams } | { error: string } {
+): { params: StatsParams } | { error: StatsParamErrorCode } {
   const username = searchParams.get("username")?.trim().toLowerCase();
   const type = searchParams.get("type") as GameType | null;
 
   if (!username) {
-    return { error: "Parâmetro username é obrigatório." };
+    return { error: "missing_username" };
   }
 
   if (!type || !VALID_TYPES.has(type)) {
-    return { error: "Parâmetro type inválido." };
+    return { error: "invalid_type" };
   }
 
   if (type === "manual" && !searchParams.get("timeControl")) {
-    return { error: "Para type=manual, informe timeControl." };
+    return { error: "missing_time_control" };
   }
 
   const periodResult = resolvePeriod(searchParams);

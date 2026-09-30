@@ -1,0 +1,283 @@
+{
+  "meta": {
+    "title": "ChesStats — Free Chess.com & Lichess OBS Overlay",
+    "description": "Free live chess statistics overlay for OBS and Streamlabs. Track Chess.com and Lichess rating changes, win rate, streaks and session performance."
+  },
+  "nav": {
+    "brand": "ChesStats",
+    "create": "Create my overlay",
+    "language": "Language",
+    "support": "Support on Ko-fi",
+    "home": "Home",
+    "skip": "Skip to configurator"
+  },
+  "hero": {
+    "title": "Live Chess Stats for OBS",
+    "subtitle": "Show your Chess.com and Lichess performance live on stream.",
+    "points": "Rating change · Win rate · Win streak · Session stats · Custom overlays",
+    "cta": "Create my overlay",
+    "demo": "See live demo",
+    "free": "Free",
+    "noAccount": "No account required",
+    "openSource": "Open source"
+  },
+  "demo": {
+    "title": "Live preview",
+    "caption": "A sample blitz session. Your overlay uses your username, colors, and live games.",
+    "labels": {
+      "elo": "ELO",
+      "wins": "Wins",
+      "draws": "Draws",
+      "losses": "Losses",
+      "delta": "Δ Rating",
+      "winRate": "WR%",
+      "streak": "Streak",
+      "games": "games",
+      "rated": "rated",
+      "updated": "Updated",
+      "updating": "Updating…",
+      "victory": "Win!",
+      "milestone": "Milestone {rating}",
+      "sponsor": "Sponsor"
+    }
+  },
+  "features": {
+    "title": "What you can put on stream",
+    "items": [
+      { "title": "Chess.com", "body": "Public games, rating, and results from Chess.com." },
+      { "title": "Lichess", "body": "The same session stats from a Lichess account." },
+      { "title": "Rating change", "body": "See how much the rating moved during the period." },
+      { "title": "Wins, losses, draws", "body": "The record for the games in the overlay window." },
+      { "title": "Win rate", "body": "Wins divided by all games in the session." },
+      { "title": "Streak", "body": "Current run of wins, updated as games finish." },
+      { "title": "Session tracking", "body": "Start a counter when the stream starts and keep that mark in the URL." },
+      { "title": "Both platforms", "body": "Show Chess.com and Lichess side by side." },
+      { "title": "Transparent background", "body": "The browser source sits on top of the board." },
+      { "title": "Custom colors", "body": "Pick a palette, or set your own primary and accent colors." },
+      { "title": "Browser source", "body": "Paste one URL into OBS. No plugin install." },
+      { "title": "No signup", "body": "The basic overlay works without an account." }
+    ]
+  },
+  "how": {
+    "title": "How it works",
+    "steps": [
+      { "title": "Enter your username", "body": "Chess.com, Lichess, or both. Nothing to install and no password." },
+      { "title": "Customize your overlay", "body": "Choose the mode, the session window, colors, and which stats to show." },
+      { "title": "Add the URL to OBS", "body": "Create a Browser Source, paste the URL, and turn on a transparent background." }
+    ]
+  },
+  "gallery": {
+    "title": "Palettes",
+    "intro": "Start from a palette in the configurator, then adjust the colors if you want."
+  },
+  "configurator": {
+    "title": "Create your overlay"
+  },
+  "faq": {
+    "title": "FAQ",
+    "items": [
+      {
+        "q": "Do I need an account?",
+        "a": "No. The overlay is free and works without signing up. The configuration stays in this browser."
+      },
+      {
+        "q": "Which sites are supported?",
+        "a": "Chess.com and Lichess, including both at the same time. ChesStats reads their public APIs."
+      },
+      {
+        "q": "How do I add it to OBS?",
+        "a": "Copy the overlay URL, add a Browser Source, paste the URL, set the size, and enable a transparent background. The docs page has the short version."
+      },
+      {
+        "q": "Does ChesStats store my Chess.com or Lichess password?",
+        "a": "No. Only the public username goes into the overlay URL. Passwords are never requested or stored."
+      },
+      {
+        "q": "Will changing the site language break my OBS source?",
+        "a": "No. Overlay URLs stay at /overlay and do not include a language prefix."
+      }
+    ]
+  },
+  "opensource": {
+    "title": "Open source",
+    "body": "ChesStats is an independent open source project by Alberto Horta. It is not affiliated with Chess.com or Lichess.",
+    "github": "View on GitHub"
+  },
+  "footer": {
+    "product": "Product",
+    "resources": "Resources",
+    "project": "Project",
+    "legal": "Legal",
+    "overlay": "Overlay",
+    "documentation": "Documentation",
+    "changelog": "Changelog",
+    "obsGuide": "OBS guide",
+    "github": "GitHub",
+    "about": "About",
+    "support": "Support",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "attribution": "API attribution"
+  },
+  "builder": {
+    "accountsTitle": "Accounts",
+    "accountsDescription": "The configuration stays in this browser. Export the JSON to back it up or move it to another computer.",
+    "exportJson": "Export JSON",
+    "importJson": "Import JSON",
+    "exported": "Configuration exported.",
+    "imported": "Configuration imported.",
+    "importInvalid": "Invalid JSON. Check the file and try again.",
+    "primarySite": "Primary site",
+    "primaryUser": "Primary username",
+    "primaryUserPlaceholder": "e.g. hikaru",
+    "secondarySite": "Secondary site (optional)",
+    "secondaryUser": "Secondary username",
+    "secondaryUserPlaceholder": "leave empty for a single site",
+    "overlayName": "Overlay name",
+    "overlayNamePlaceholder": "e.g. Live blitz",
+    "matchTitle": "Games",
+    "matchDescription": "Mode, session period, and refresh interval.",
+    "mode": "Mode",
+    "timeControl": "Time control",
+    "timeControlPlaceholder": "600+0 or 3+2",
+    "initialRating": "Starting rating",
+    "initialRatingPlaceholder": "e.g. 2500",
+    "period": "Period",
+    "restartCounter": "Restart counter",
+    "startCounter": "Start counter",
+    "sessionSince": "Session since {time}. This mark is stored in the overlay URL and stays if OBS reloads the source.",
+    "sessionHint": "The counter only includes games that finish after this click.",
+    "from": "From",
+    "to": "To",
+    "refreshEvery": "Refresh every {seconds}s",
+    "previewTitle": "Preview",
+    "previewDescription": "The board behind the card helps you judge light and dark palettes.",
+    "openOverlay": "Open overlay",
+    "previewFrameTitle": "Overlay preview",
+    "previewEmpty": "Fill in the required fields to see the preview.",
+    "displayTitle": "Display",
+    "displayDescription": "Overlay columns, alerts, and palette.",
+    "columnsLegend": "Columns and alerts",
+    "showDelta": "Rating change",
+    "showWinRate": "Win rate %",
+    "showStreak": "Streak",
+    "showAlerts": "Win and milestone alerts",
+    "palette": "Overlay palette",
+    "primaryColor": "Primary color",
+    "accentColor": "Accent color",
+    "font": "Font",
+    "logoUrl": "Sponsor logo URL",
+    "logoHint": "Use a publicly hosted image.",
+    "obsTitle": "Use in OBS",
+    "obsDescription": "Copy the HTML URL for a Browser Source, the plain-text URL, or the JSON API.",
+    "tabUrl": "Overlay URL",
+    "tabIframe": "HTML snippet",
+    "tabText": "Text URL",
+    "tabApi": "JSON API URL",
+    "outputEmpty": "Finish the configuration to generate the code.",
+    "copyUrl": "Copy URL",
+    "copySnippet": "Copy snippet",
+    "copyText": "Copy text URL",
+    "copyApi": "Copy API URL",
+    "copied": "Copied!",
+    "goOverlay": "Open overlay",
+    "obsHint": "In OBS: Sources → Browser → paste the URL → width about 420px (or about 840px with both sites), height about 220px, transparent background on.",
+    "gameTypes": {
+      "blitz": { "label": "Blitz", "hint": "Standard blitz games" },
+      "bullet": { "label": "Bullet", "hint": "Standard bullet games" },
+      "rapid": { "label": "Rapid", "hint": "Standard rapid games" },
+      "daily": { "label": "Daily", "hint": "Classic daily chess" },
+      "daily960": { "label": "Daily 960", "hint": "Daily Chess960" },
+      "puzzles": { "label": "Puzzles", "hint": "Rating tracking from a starting value you enter" },
+      "manual": { "label": "Manual", "hint": "Filter by a specific time control" }
+    },
+    "periods": {
+      "session": { "label": "Live session", "hint": "Click Start counter to mark the beginning — useful for streams" },
+      "today": { "label": "Today", "hint": "Games from today" },
+      "week": { "label": "Last 7 days", "hint": "The current week" },
+      "month": { "label": "This month", "hint": "From the 1st through today" },
+      "custom": { "label": "Custom", "hint": "Pick a start and end date" }
+    },
+    "palettes": {
+      "ink": { "label": "Ink", "hint": "Dark ink on the board" },
+      "paper": { "label": "Paper", "hint": "Score-sheet paper" },
+      "sepia": { "label": "Sepia", "hint": "Classic chess column" }
+    },
+    "errors": {
+      "missing_username": "Enter the primary username.",
+      "same_provider": "The secondary site must be different from the primary site.",
+      "missing_time_control": "Enter a time control for manual mode (for example 600+0).",
+      "missing_initial_rating": "Enter a starting rating for puzzles.",
+      "missing_dates": "Enter the start and end dates.",
+      "inverted_dates": "The start date must be on or before the end date.",
+      "missing_session_start": "Click Start counter to mark the beginning of the session.",
+      "refresh_too_low": "The minimum refresh interval is {seconds} seconds."
+    }
+  },
+  "about": {
+    "metaTitle": "About",
+    "metaDescription": "ChesStats is an independent open source overlay for chess streamers. It is not affiliated with Chess.com or Lichess.",
+    "title": "About ChesStats",
+    "paragraphs": [
+      "ChesStats is a free, open source overlay that shows live Chess.com and Lichess statistics inside OBS and other broadcasting tools.",
+      "It is built for chess streamers who want rating change, record, win rate, and streak on screen without creating an account.",
+      "ChesStats is an independent project. It is not affiliated with, endorsed by, or sponsored by Chess.com or Lichess."
+    ],
+    "attributionTitle": "API attribution",
+    "attribution": [
+      "Player and game data comes from the public Chess.com Published Data API and the public Lichess API. Those services, their names, and their trademarks belong to their respective owners.",
+      "ChesStats does not ask for Chess.com or Lichess passwords."
+    ]
+  },
+  "privacy": {
+    "metaTitle": "Privacy",
+    "metaDescription": "How ChesStats handles usernames, overlay settings, and public chess APIs.",
+    "title": "Privacy",
+    "paragraphs": [
+      "ChesStats does not require an account for the basic overlay. Overlay settings are saved in your browser with localStorage. They are not uploaded to a ChesStats account.",
+      "The overlay URL contains the chess username and the display options you chose. Anyone with that URL can request the same public statistics.",
+      "Usernames are sent to Chess.com or Lichess through the public APIs those sites provide. ChesStats does not collect or store chess passwords.",
+      "The language choice is stored in a cookie named chesstats-locale so the site can open in the same language next time."
+    ]
+  },
+  "terms": {
+    "metaTitle": "Terms",
+    "metaDescription": "Terms for using the free ChesStats chess overlay.",
+    "title": "Terms",
+    "paragraphs": [
+      "ChesStats is provided for free and as open source software, without a warranty. Streaming tools, chess sites, and their APIs can change or be unavailable.",
+      "You are responsible for the usernames, colors, and images you put in an overlay, including any sponsor logo URL.",
+      "Chess.com and Lichess are trademarks of their respective owners. Using ChesStats does not create a relationship with those companies."
+    ]
+  },
+  "changelog": {
+    "metaTitle": "Changelog",
+    "metaDescription": "What changed in ChesStats.",
+    "title": "Changelog",
+    "entries": [
+      {
+        "version": "0.1.0",
+        "items": [
+          "Free Chess.com and Lichess overlay for OBS, with rating change, record, win rate, and streak.",
+          "Landing page in English and Portuguese, with a language choice that stays in a cookie.",
+          "Overlay and API URLs stay unprefixed, so existing browser sources keep working."
+        ]
+      }
+    ]
+  },
+  "docs": {
+    "metaTitle": "OBS guide",
+    "metaDescription": "Add a ChesStats chess overlay to OBS as a browser source.",
+    "title": "Add the overlay to OBS",
+    "intro": "You do not need a plugin. OBS loads the overlay as a browser source.",
+    "steps": [
+      "Open ChesStats and enter your Chess.com or Lichess username.",
+      "Choose the mode and click Start counter if you want stats for the current stream only.",
+      "Click Copy URL.",
+      "In OBS, add a source and choose Browser.",
+      "Paste the URL. Set the width to about 420 pixels, or about 840 if you show two sites. Set the height to about 220.",
+      "Turn on a transparent background, then place the source over your board."
+    ],
+    "note": "The same URL works in other tools that support a browser source, including Streamlabs."
+  }
+}

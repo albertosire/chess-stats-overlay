@@ -31,7 +31,9 @@ import {
   saveOverlayConfig,
 } from "@/lib/overlay/storage";
 import { cn } from "@/lib/utils";
+import type { Dictionary, Locale } from "@/lib/i18n";
 
+type BuilderCopy = Dictionary["builder"];
 type OutputTab = "url" | "iframe" | "api" | "text";
 
 const inputClass =
@@ -41,7 +43,17 @@ const outlineButtonClass =
 const primaryButtonClass =
   "rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40";
 
-function CopyButton({ value, label, disabled }: { value: string; label: string; disabled?: boolean }) {
+function CopyButton({
+  value,
+  label,
+  copiedLabel,
+  disabled,
+}: {
+  value: string;
+  label: string;
+  copiedLabel: string;
+  disabled?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -58,13 +70,13 @@ function CopyButton({ value, label, disabled }: { value: string; label: string; 
       disabled={disabled || !value}
       className={primaryButtonClass}
     >
-      {copied ? "Copiado!" : label}
+      {copied ? copiedLabel : label}
     </button>
   );
 }
 
-function formatSessionStart(iso: string): string {
-  return new Date(iso).toLocaleString("pt-BR");
+function formatSessionStart(iso: string, locale: Locale): string {
+  return new Date(iso).toLocaleString(locale);
 }
 
 function Section({
@@ -94,7 +106,7 @@ function Section({
   );
 }
 
-export function OverlayBuilder() {
+export function OverlayBuilder({ copy, locale }: { copy: BuilderCopy; locale: Locale }) {
   const [config, setConfig] = useState<OverlayConfig>(DEFAULT_OVERLAY_CONFIG);
   const [hydrated, setHydrated] = useState(false);
   const [outputTab, setOutputTab] = useState<OutputTab>("url");
@@ -103,9 +115,12 @@ export function OverlayBuilder() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setOrigin(window.location.origin);
-    setConfig(loadOverlayConfig());
-    setHydrated(true);
+    const frame = window.requestAnimationFrame(() => {
+      setOrigin(window.location.origin);
+      setConfig(loadOverlayConfig());
+      setHydrated(true);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -164,7 +179,7 @@ export function OverlayBuilder() {
     anchor.download = "chess-overlay-config.json";
     anchor.click();
     URL.revokeObjectURL(url);
-    setStorageMessage("Configuração exportada.");
+    setStorageMessage(copy.exported);
   }
 
   function handleImportFile(file: File) {
@@ -174,9 +189,9 @@ export function OverlayBuilder() {
         const text = String(reader.result ?? "");
         const next = importOverlayConfigJson(text);
         setConfig(next);
-        setStorageMessage("Configuração importada.");
+        setStorageMessage(copy.imported);
       } catch {
-        setStorageMessage("JSON inválido. Confira o arquivo e tente de novo.");
+        setStorageMessage(copy.importInvalid);
       }
     };
     reader.readAsText(file);
@@ -185,19 +200,19 @@ export function OverlayBuilder() {
   return (
     <div className="flex flex-col gap-8">
       <Section
-        title="Contas"
-        description="A configuração fica neste navegador. Exporte o JSON para backup ou outro PC."
+        title={copy.accountsTitle}
+        description={copy.accountsDescription}
         action={
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={handleExport} className={outlineButtonClass}>
-              Exportar JSON
+              {copy.exportJson}
             </button>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className={outlineButtonClass}
             >
-              Importar JSON
+              {copy.importJson}
             </button>
             <input
               ref={fileInputRef}
@@ -219,7 +234,7 @@ export function OverlayBuilder() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block space-y-2">
-            <span className="text-sm font-medium">Site principal</span>
+            <span className="text-sm font-medium">{copy.primarySite}</span>
             <select
               value={config.provider ?? "chesscom"}
               onChange={(event) => update("provider", event.target.value as ChessSite)}
@@ -233,12 +248,12 @@ export function OverlayBuilder() {
             </select>
           </label>
           <label className="block space-y-2">
-            <span className="text-sm font-medium">Usuário principal</span>
+            <span className="text-sm font-medium">{copy.primaryUser}</span>
             <input
               type="text"
               value={config.username}
               onChange={(event) => update("username", event.target.value)}
-              placeholder="ex: hikaru"
+              placeholder={copy.primaryUserPlaceholder}
               className={inputClass}
             />
           </label>
@@ -246,7 +261,7 @@ export function OverlayBuilder() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block space-y-2">
-            <span className="text-sm font-medium">Site secundário (opcional)</span>
+            <span className="text-sm font-medium">{copy.secondarySite}</span>
             <select
               value={config.provider2 ?? "lichess"}
               onChange={(event) => update("provider2", event.target.value as ChessSite)}
@@ -260,36 +275,36 @@ export function OverlayBuilder() {
             </select>
           </label>
           <label className="block space-y-2">
-            <span className="text-sm font-medium">Usuário secundário</span>
+            <span className="text-sm font-medium">{copy.secondaryUser}</span>
             <input
               type="text"
               value={config.username2 ?? ""}
               onChange={(event) => update("username2", event.target.value)}
-              placeholder="deixe vazio para um só site"
+              placeholder={copy.secondaryUserPlaceholder}
               className={inputClass}
             />
           </label>
         </div>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium">Nome do overlay</span>
+          <span className="text-sm font-medium">{copy.overlayName}</span>
           <input
             type="text"
             value={config.name ?? ""}
             maxLength={MAX_OVERLAY_NAME_LENGTH}
             onChange={(event) => update("name", event.target.value)}
-            placeholder="ex: Blitz da live"
+            placeholder={copy.overlayNamePlaceholder}
             className={inputClass}
           />
         </label>
       </Section>
 
       <Section
-        title="Partida"
-        description="Modalidade, período da sessão e intervalo de atualização."
+        title={copy.matchTitle}
+        description={copy.matchDescription}
       >
         <label className="block space-y-2">
-          <span className="text-sm font-medium">Modalidade</span>
+          <span className="text-sm font-medium">{copy.mode}</span>
           <select
             value={config.type}
             onChange={(event) => update("type", event.target.value as OverlayConfig["type"])}
@@ -297,23 +312,23 @@ export function OverlayBuilder() {
           >
             {GAME_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {copy.gameTypes[option.value].label}
               </option>
             ))}
           </select>
           <p className="text-xs text-muted-foreground">
-            {GAME_TYPE_OPTIONS.find((option) => option.value === config.type)?.hint}
+            {copy.gameTypes[config.type].hint}
           </p>
         </label>
 
         {config.type === "manual" ? (
           <label className="block space-y-2">
-            <span className="text-sm font-medium">Time control</span>
+            <span className="text-sm font-medium">{copy.timeControl}</span>
             <input
               type="text"
               value={config.timeControl ?? ""}
               onChange={(event) => update("timeControl", event.target.value)}
-              placeholder="600+0 ou 3+2"
+              placeholder={copy.timeControlPlaceholder}
               className={inputClass}
             />
           </label>
@@ -321,19 +336,19 @@ export function OverlayBuilder() {
 
         {config.type === "puzzles" ? (
           <label className="block space-y-2">
-            <span className="text-sm font-medium">Rating inicial</span>
+            <span className="text-sm font-medium">{copy.initialRating}</span>
             <input
               type="number"
               value={config.initialRating ?? ""}
               onChange={(event) => update("initialRating", event.target.value)}
-              placeholder="ex: 2500"
+              placeholder={copy.initialRatingPlaceholder}
               className={inputClass}
             />
           </label>
         ) : null}
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium">Período</span>
+          <span className="text-sm font-medium">{copy.period}</span>
           <select
             value={config.periodMode}
             onChange={(event) =>
@@ -343,29 +358,26 @@ export function OverlayBuilder() {
           >
             {PERIOD_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {copy.periods[option.value].label}
               </option>
             ))}
           </select>
           <p className="text-xs text-muted-foreground">
-            {PERIOD_OPTIONS.find((option) => option.value === config.periodMode)?.hint}
+            {copy.periods[config.periodMode].hint}
           </p>
         </label>
 
         {config.periodMode === "session" ? (
           <div className="space-y-3 rounded-lg border border-border bg-background/70 px-3 py-3">
             <button type="button" onClick={startCounter} className={primaryButtonClass}>
-              {config.sessionStart ? "Reiniciar Contador" : "Iniciar Contador"}
+              {config.sessionStart ? copy.restartCounter : copy.startCounter}
             </button>
             {config.sessionStart ? (
               <p className="text-xs text-muted-foreground">
-                Sessão desde {formatSessionStart(config.sessionStart)}. Esse marco vai na URL do
-                overlay e não muda se o OBS recarregar a fonte.
+                {copy.sessionSince.replace("{time}", formatSessionStart(config.sessionStart, locale))}
               </p>
             ) : (
-              <p className="text-xs text-muted-foreground">
-                O contador só considera partidas com fim depois deste clique.
-              </p>
+              <p className="text-xs text-muted-foreground">{copy.sessionHint}</p>
             )}
           </div>
         ) : null}
@@ -373,7 +385,7 @@ export function OverlayBuilder() {
         {config.periodMode === "custom" ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block space-y-2">
-              <span className="text-sm font-medium">De</span>
+              <span className="text-sm font-medium">{copy.from}</span>
               <input
                 type="date"
                 value={config.from ?? ""}
@@ -382,7 +394,7 @@ export function OverlayBuilder() {
               />
             </label>
             <label className="block space-y-2">
-              <span className="text-sm font-medium">Até</span>
+              <span className="text-sm font-medium">{copy.to}</span>
               <input
                 type="date"
                 value={config.to ?? ""}
@@ -394,7 +406,9 @@ export function OverlayBuilder() {
         ) : null}
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium">Atualizar a cada {config.refresh}s</span>
+          <span className="text-sm font-medium">
+            {copy.refreshEvery.replace("{seconds}", String(config.refresh))}
+          </span>
           <input
             type="range"
             min={MIN_REFRESH_SECONDS}
@@ -409,19 +423,22 @@ export function OverlayBuilder() {
         {errors.length > 0 ? (
           <ul className="space-y-1 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {errors.map((error) => (
-              <li key={error}>• {error}</li>
+              <li key={error}>
+                •{" "}
+                {copy.errors[error].replace("{seconds}", String(MIN_REFRESH_SECONDS))}
+              </li>
             ))}
           </ul>
         ) : null}
       </Section>
 
       <Section
-        title="Pré-visualização"
-        description="O tabuleiro ao fundo ajuda a ver paletas claras e escuras."
+        title={copy.previewTitle}
+        description={copy.previewDescription}
         action={
           isValid ? (
             <Link href={overlayPath} target="_blank" className={outlineButtonClass}>
-              Abrir overlay ↗
+              {copy.openOverlay}
             </Link>
           ) : null
         }
@@ -431,7 +448,7 @@ export function OverlayBuilder() {
             <iframe
               key={overlayPath}
               src={overlayPath}
-              title="Pré-visualização do overlay"
+              title={copy.previewFrameTitle}
               width="100%"
               height="220"
               className="border-0 bg-transparent"
@@ -439,21 +456,21 @@ export function OverlayBuilder() {
             />
           ) : (
             <div className="flex h-[220px] items-center justify-center rounded-lg bg-primary/55 text-sm text-primary-foreground">
-              Preencha os campos obrigatórios para ver a pré-visualização.
+              {copy.previewEmpty}
             </div>
           )}
         </div>
       </Section>
 
-      <Section title="Exibição" description="Colunas no overlay, alertas e paleta.">
+      <Section title={copy.displayTitle} description={copy.displayDescription}>
         <fieldset className="space-y-2">
-          <legend className="text-sm font-medium">Colunas e alertas</legend>
+          <legend className="text-sm font-medium">{copy.columnsLegend}</legend>
           {(
             [
-              ["showDelta", "Δ ELO"],
-              ["showWinRate", "Win rate %"],
-              ["showStreak", "Streak"],
-              ["showAlerts", "Alertas de vitória / marco"],
+              ["showDelta", copy.showDelta],
+              ["showWinRate", copy.showWinRate],
+              ["showStreak", copy.showStreak],
+              ["showAlerts", copy.showAlerts],
             ] as const
           ).map(([key, label]) => (
             <label key={key} className="flex items-center gap-2 text-sm">
@@ -469,7 +486,7 @@ export function OverlayBuilder() {
         </fieldset>
 
         <div className="space-y-3">
-          <p className="text-sm font-medium">Paleta do overlay</p>
+          <p className="text-sm font-medium">{copy.palette}</p>
           <div className="grid gap-3 sm:grid-cols-3">
             {OVERLAY_PALETTES.map((palette) => {
               const selected = activePalette?.id === palette.id;
@@ -492,8 +509,10 @@ export function OverlayBuilder() {
                     <span className="w-2/3" style={{ background: palette.primary }} />
                     <span className="w-1/3" style={{ background: palette.accent }} />
                   </span>
-                  <span className="block text-sm font-medium">{palette.label}</span>
-                  <span className="block text-xs text-muted-foreground">{palette.hint}</span>
+                  <span className="block text-sm font-medium">{copy.palettes[palette.id].label}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {copy.palettes[palette.id].hint}
+                  </span>
                 </button>
               );
             })}
@@ -502,7 +521,7 @@ export function OverlayBuilder() {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block space-y-2">
-            <span className="text-sm">Cor primária</span>
+            <span className="text-sm">{copy.primaryColor}</span>
             <input
               type="color"
               value={config.primaryColor ?? DEFAULT_PRIMARY_COLOR}
@@ -511,7 +530,7 @@ export function OverlayBuilder() {
             />
           </label>
           <label className="block space-y-2">
-            <span className="text-sm">Cor accent</span>
+            <span className="text-sm">{copy.accentColor}</span>
             <input
               type="color"
               value={config.accentColor ?? DEFAULT_ACCENT_COLOR}
@@ -522,7 +541,7 @@ export function OverlayBuilder() {
         </div>
 
         <label className="block space-y-2">
-          <span className="text-sm">Fonte</span>
+          <span className="text-sm">{copy.font}</span>
           <select
             value={config.fontFamily ?? "Inter"}
             onChange={(event) => update("fontFamily", event.target.value)}
@@ -537,7 +556,7 @@ export function OverlayBuilder() {
         </label>
 
         <label className="block space-y-2">
-          <span className="text-sm">URL da logo do patrocinador</span>
+          <span className="text-sm">{copy.logoUrl}</span>
           <input
             type="url"
             value={config.logoUrl ?? ""}
@@ -545,21 +564,21 @@ export function OverlayBuilder() {
             placeholder="https://…"
             className={inputClass}
           />
-          <p className="text-xs text-muted-foreground">Use uma imagem hospedada publicamente.</p>
+          <p className="text-xs text-muted-foreground">{copy.logoHint}</p>
         </label>
       </Section>
 
       <Section
-        title="Use no OBS"
-        description="Copie a URL HTML para Browser Source, o texto puro, ou o JSON da API."
+        title={copy.obsTitle}
+        description={copy.obsDescription}
       >
         <div className="flex flex-wrap gap-2">
           {(
             [
-              ["url", "URL do overlay"],
-              ["iframe", "Snippet HTML"],
-              ["text", "URL de texto"],
-              ["api", "URL da API JSON"],
+              ["url", copy.tabUrl],
+              ["iframe", copy.tabIframe],
+              ["text", copy.tabText],
+              ["api", copy.tabApi],
             ] as const
           ).map(([tab, label]) => (
             <button
@@ -579,35 +598,33 @@ export function OverlayBuilder() {
         </div>
 
         <pre className="max-h-48 overflow-auto rounded-lg bg-primary p-3 text-xs leading-relaxed text-primary-foreground">
-          {isValid ? outputValue : "Complete a configuração para gerar o código."}
+          {isValid ? outputValue : copy.outputEmpty}
         </pre>
 
         <div className="flex flex-wrap gap-3">
           <CopyButton
             value={isValid ? outputValue : ""}
             disabled={!isValid}
+            copiedLabel={copy.copied}
             label={
               outputTab === "url"
-                ? "Copiar URL"
+                ? copy.copyUrl
                 : outputTab === "iframe"
-                  ? "Copiar snippet"
+                  ? copy.copySnippet
                   : outputTab === "text"
-                    ? "Copiar URL de texto"
-                    : "Copiar URL da API"
+                    ? copy.copyText
+                    : copy.copyApi
             }
           />
           {isValid ? (
             <Link href={overlayPath} target="_blank" className={outlineButtonClass}>
-              Ir para o overlay
+              {copy.goOverlay}
             </Link>
           ) : null}
         </div>
 
         {outputTab === "url" && isValid ? (
-          <p className="text-xs text-muted-foreground">
-            No OBS: Fonte → Browser → cole a URL → largura ~420px (ou ~840px com dual), altura
-            ~220px, fundo transparente ativado.
-          </p>
+          <p className="text-xs text-muted-foreground">{copy.obsHint}</p>
         ) : null}
       </Section>
     </div>

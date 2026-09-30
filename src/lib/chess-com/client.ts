@@ -1,3 +1,5 @@
+import { ChessApiError } from "@/lib/errors";
+
 const DEFAULT_USER_AGENT =
   "ChessStatsOverlay/1.0 (Alberto Horta; https://github.com/albertosire)";
 
@@ -49,6 +51,7 @@ export async function chessFetch<T>(
       const response = await fetch(url, {
         headers,
         cache: "no-store",
+        signal: AbortSignal.timeout(12_000),
       });
 
       if (response.status === 304) {
@@ -64,21 +67,16 @@ export async function chessFetch<T>(
         if (options.notFound !== undefined) {
           return options.notFound;
         }
-        throw new ChessApiError("Usuário ou recurso não encontrado.", 404);
+        throw new ChessApiError("not_found", 404);
       }
 
       if (response.status === 429 || response.status === 403) {
-        lastError = new ChessApiError(
-          response.status === 403
-            ? "Limite de requisições da API Chess.com atingido. Tente novamente em instantes."
-            : "Muitas requisições. Aguarde e tente novamente.",
-          response.status,
-        );
+        lastError = new ChessApiError("rate_limited", 429);
         continue;
       }
 
       if (!response.ok) {
-        throw new ChessApiError(`Erro na API Chess.com (${response.status}).`, response.status);
+        throw new ChessApiError("unavailable", 503);
       }
 
       const body = (await response.json()) as T;
@@ -91,26 +89,21 @@ export async function chessFetch<T>(
       return body;
     } catch (error) {
       if (error instanceof ChessApiError) {
-        if (error.status === 404) throw error;
+        if (error.code === "not_found") throw error;
         lastError = error;
         continue;
       }
-      lastError = error instanceof Error ? error : new Error(String(error));
+      lastError =
+        error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")
+          ? new ChessApiError("timeout", 504)
+          : new ChessApiError("unavailable", 503);
     }
   }
 
-  throw lastError ?? new Error("Falha ao consultar a API Chess.com.");
+  throw lastError ?? new ChessApiError("unavailable", 503);
 }
 
-export class ChessApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-  ) {
-    super(message);
-    this.name = "ChessApiError";
-  }
-}
+export { ChessApiError };
 
 export async function fetchWithConcurrency<T>(
   urls: string[],

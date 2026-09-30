@@ -204,39 +204,49 @@ export function buildIframeSnippet(absoluteOverlayUrl: string, width = 420, heig
 ></iframe>`;
 }
 
-export function validateOverlayConfig(config: OverlayConfig): string[] {
-  const errors: string[] = [];
+export type OverlayConfigErrorCode =
+  | "missing_username"
+  | "same_provider"
+  | "missing_time_control"
+  | "missing_initial_rating"
+  | "missing_dates"
+  | "inverted_dates"
+  | "missing_session_start"
+  | "refresh_too_low";
+
+export function validateOverlayConfig(config: OverlayConfig): OverlayConfigErrorCode[] {
+  const errors: OverlayConfigErrorCode[] = [];
 
   if (!config.username.trim()) {
-    errors.push("Informe o usuário da plataforma principal.");
+    errors.push("missing_username");
   }
 
   if (config.username2?.trim() && config.provider === config.provider2) {
-    errors.push("O provider secundário deve ser diferente do principal.");
+    errors.push("same_provider");
   }
 
   if (config.type === "manual" && !config.timeControl?.trim()) {
-    errors.push("Informe o time control para o modo manual (ex: 600+0).");
+    errors.push("missing_time_control");
   }
 
   if (config.type === "puzzles" && !config.initialRating?.trim()) {
-    errors.push("Informe o rating inicial para o modo problemas.");
+    errors.push("missing_initial_rating");
   }
 
   if (config.periodMode === "custom") {
     if (!config.from || !config.to) {
-      errors.push("Informe as datas inicial e final.");
+      errors.push("missing_dates");
     } else if (config.from > config.to) {
-      errors.push("A data inicial deve ser anterior ou igual à final.");
+      errors.push("inverted_dates");
     }
   }
 
   if (config.periodMode === "session" && !config.sessionStart) {
-    errors.push("Clique em Iniciar Contador para marcar o início da sessão.");
+    errors.push("missing_session_start");
   }
 
   if (config.refresh < MIN_REFRESH_SECONDS) {
-    errors.push(`O intervalo de atualização mínimo é ${MIN_REFRESH_SECONDS} segundos.`);
+    errors.push("refresh_too_low");
   }
 
   return errors;
