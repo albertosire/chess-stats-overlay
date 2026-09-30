@@ -1,0 +1,283 @@
+{
+  "meta": {
+    "title": "ChesStats — Overlay gratuito de Chess.com e Lichess para OBS",
+    "description": "Overlay gratuito de estatísticas de xadrez ao vivo para OBS e Streamlabs. Acompanhe variação de rating, win rate, sequências e desempenho da sessão no Chess.com e no Lichess."
+  },
+  "nav": {
+    "brand": "ChesStats",
+    "create": "Criar meu overlay",
+    "language": "Idioma",
+    "support": "Apoie no Ko-fi",
+    "home": "Início",
+    "skip": "Ir para o configurador"
+  },
+  "hero": {
+    "title": "Estatísticas de xadrez ao vivo para o OBS",
+    "subtitle": "Mostre o desempenho no Chess.com e no Lichess ao vivo na transmissão.",
+    "points": "Variação de rating · Win rate · Sequência de vitórias · Estatísticas da sessão · Overlays personalizados",
+    "cta": "Criar meu overlay",
+    "demo": "Ver demonstração",
+    "free": "Grátis",
+    "noAccount": "Sem conta",
+    "openSource": "Código aberto"
+  },
+  "demo": {
+    "title": "Prévia ao vivo",
+    "caption": "Uma sessão de blitz de exemplo. O seu overlay usa o seu usuário, as suas cores e as partidas reais.",
+    "labels": {
+      "elo": "ELO",
+      "wins": "Vitórias",
+      "draws": "Empates",
+      "losses": "Derrotas",
+      "delta": "Δ Rating",
+      "winRate": "WR%",
+      "streak": "Streak",
+      "games": "partidas",
+      "rated": "rated",
+      "updated": "Atualizado",
+      "updating": "Atualizando…",
+      "victory": "Vitória!",
+      "milestone": "Marco {rating}",
+      "sponsor": "Patrocinador"
+    }
+  },
+  "features": {
+    "title": "O que entra na transmissão",
+    "items": [
+      { "title": "Chess.com", "body": "Partidas, rating e resultados públicos do Chess.com." },
+      { "title": "Lichess", "body": "As mesmas estatísticas de sessão a partir de uma conta Lichess." },
+      { "title": "Variação de rating", "body": "Quanto o rating mudou no período escolhido." },
+      { "title": "Vitórias, derrotas e empates", "body": "O retrospecto das partidas na janela do overlay." },
+      { "title": "Win rate", "body": "Vitórias divididas por todas as partidas da sessão." },
+      { "title": "Sequência", "body": "A série atual de vitórias, atualizada quando as partidas terminam." },
+      { "title": "Sessão", "body": "Inicie o contador quando a live começa e mantenha essa marca na URL." },
+      { "title": "As duas plataformas", "body": "Mostre Chess.com e Lichess lado a lado." },
+      { "title": "Fundo transparente", "body": "A browser source fica por cima do tabuleiro." },
+      { "title": "Cores personalizadas", "body": "Escolha uma paleta ou defina as cores primária e de destaque." },
+      { "title": "Browser source", "body": "Cole uma URL no OBS. Sem instalar plugin." },
+      { "title": "Sem cadastro", "body": "O overlay básico funciona sem conta." }
+    ]
+  },
+  "how": {
+    "title": "Como funciona",
+    "steps": [
+      { "title": "Informe o usuário", "body": "Chess.com, Lichess ou os dois. Nada para instalar e nenhuma senha." },
+      { "title": "Personalize o overlay", "body": "Escolha a modalidade, a janela da sessão, as cores e quais estatísticas mostrar." },
+      { "title": "Adicione a URL no OBS", "body": "Crie uma Browser Source, cole a URL e ative o fundo transparente." }
+    ]
+  },
+  "gallery": {
+    "title": "Paletas",
+    "intro": "Comece por uma paleta no configurador e ajuste as cores se quiser."
+  },
+  "configurator": {
+    "title": "Crie o seu overlay"
+  },
+  "faq": {
+    "title": "Perguntas frequentes",
+    "items": [
+      {
+        "q": "Preciso de uma conta?",
+        "a": "Não. O overlay é gratuito e funciona sem cadastro. A configuração fica neste navegador."
+      },
+      {
+        "q": "Quais sites são suportados?",
+        "a": "Chess.com e Lichess, inclusive os dois ao mesmo tempo. O ChesStats lê as APIs públicas deles."
+      },
+      {
+        "q": "Como adiciono no OBS?",
+        "a": "Copie a URL do overlay, adicione uma Browser Source, cole a URL, defina o tamanho e ative o fundo transparente. A página de documentação traz o passo a passo curto."
+      },
+      {
+        "q": "O ChesStats guarda a minha senha do Chess.com ou do Lichess?",
+        "a": "Não. Só o usuário público entra na URL do overlay. Senhas não são pedidas nem armazenadas."
+      },
+      {
+        "q": "Mudar o idioma do site quebra a fonte do OBS?",
+        "a": "Não. As URLs do overlay continuam em /overlay e não incluem prefixo de idioma."
+      }
+    ]
+  },
+  "opensource": {
+    "title": "Código aberto",
+    "body": "O ChesStats é um projeto independente e de código aberto de Alberto Horta. Não é afiliado ao Chess.com nem ao Lichess.",
+    "github": "Ver no GitHub"
+  },
+  "footer": {
+    "product": "Produto",
+    "resources": "Recursos",
+    "project": "Projeto",
+    "legal": "Legal",
+    "overlay": "Overlay",
+    "documentation": "Documentação",
+    "changelog": "Changelog",
+    "obsGuide": "Guia do OBS",
+    "github": "GitHub",
+    "about": "Sobre",
+    "support": "Apoio",
+    "privacy": "Privacidade",
+    "terms": "Termos",
+    "attribution": "Atribuição das APIs"
+  },
+  "builder": {
+    "accountsTitle": "Contas",
+    "accountsDescription": "A configuração fica neste navegador. Exporte o JSON para backup ou para outro computador.",
+    "exportJson": "Exportar JSON",
+    "importJson": "Importar JSON",
+    "exported": "Configuração exportada.",
+    "imported": "Configuração importada.",
+    "importInvalid": "JSON inválido. Confira o arquivo e tente de novo.",
+    "primarySite": "Site principal",
+    "primaryUser": "Usuário principal",
+    "primaryUserPlaceholder": "ex: hikaru",
+    "secondarySite": "Site secundário (opcional)",
+    "secondaryUser": "Usuário secundário",
+    "secondaryUserPlaceholder": "deixe vazio para um só site",
+    "overlayName": "Nome do overlay",
+    "overlayNamePlaceholder": "ex: Blitz da live",
+    "matchTitle": "Partidas",
+    "matchDescription": "Modalidade, período da sessão e intervalo de atualização.",
+    "mode": "Modalidade",
+    "timeControl": "Time control",
+    "timeControlPlaceholder": "600+0 ou 3+2",
+    "initialRating": "Rating inicial",
+    "initialRatingPlaceholder": "ex: 2500",
+    "period": "Período",
+    "restartCounter": "Reiniciar contador",
+    "startCounter": "Iniciar contador",
+    "sessionSince": "Sessão desde {time}. Essa marca vai na URL do overlay e não muda se o OBS recarregar a fonte.",
+    "sessionHint": "O contador só considera partidas que terminam depois deste clique.",
+    "from": "De",
+    "to": "Até",
+    "refreshEvery": "Atualizar a cada {seconds}s",
+    "previewTitle": "Pré-visualização",
+    "previewDescription": "O tabuleiro ao fundo ajuda a avaliar paletas claras e escuras.",
+    "openOverlay": "Abrir overlay",
+    "previewFrameTitle": "Pré-visualização do overlay",
+    "previewEmpty": "Preencha os campos obrigatórios para ver a pré-visualização.",
+    "displayTitle": "Exibição",
+    "displayDescription": "Colunas do overlay, alertas e paleta.",
+    "columnsLegend": "Colunas e alertas",
+    "showDelta": "Variação de rating",
+    "showWinRate": "Win rate %",
+    "showStreak": "Sequência",
+    "showAlerts": "Alertas de vitória e marco",
+    "palette": "Paleta do overlay",
+    "primaryColor": "Cor primária",
+    "accentColor": "Cor de destaque",
+    "font": "Fonte",
+    "logoUrl": "URL da logo do patrocinador",
+    "logoHint": "Use uma imagem hospedada publicamente.",
+    "obsTitle": "Use no OBS",
+    "obsDescription": "Copie a URL HTML para Browser Source, a URL de texto puro ou a API JSON.",
+    "tabUrl": "URL do overlay",
+    "tabIframe": "Snippet HTML",
+    "tabText": "URL de texto",
+    "tabApi": "URL da API JSON",
+    "outputEmpty": "Complete a configuração para gerar o código.",
+    "copyUrl": "Copiar URL",
+    "copySnippet": "Copiar snippet",
+    "copyText": "Copiar URL de texto",
+    "copyApi": "Copiar URL da API",
+    "copied": "Copiado!",
+    "goOverlay": "Abrir overlay",
+    "obsHint": "No OBS: Fontes → Browser → cole a URL → largura de cerca de 420px (ou cerca de 840px com os dois sites), altura de cerca de 220px, fundo transparente ativado.",
+    "gameTypes": {
+      "blitz": { "label": "Blitz", "hint": "Partidas blitz padrão" },
+      "bullet": { "label": "Bullet", "hint": "Partidas bullet padrão" },
+      "rapid": { "label": "Rápido", "hint": "Partidas rapid padrão" },
+      "daily": { "label": "Diário", "hint": "Xadrez diário clássico" },
+      "daily960": { "label": "Diário 960", "hint": "Xadrez960 diário" },
+      "puzzles": { "label": "Problemas", "hint": "Acompanhamento de rating a partir de um valor inicial" },
+      "manual": { "label": "Manual", "hint": "Filtra por um time control específico" }
+    },
+    "periods": {
+      "session": { "label": "Sessão ao vivo", "hint": "Clique em Iniciar contador para marcar o começo — útil para transmissões" },
+      "today": { "label": "Hoje", "hint": "Partidas de hoje" },
+      "week": { "label": "Últimos 7 dias", "hint": "A semana corrente" },
+      "month": { "label": "Mês atual", "hint": "Do dia 1 até hoje" },
+      "custom": { "label": "Personalizado", "hint": "Escolha a data inicial e a final" }
+    },
+    "palettes": {
+      "ink": { "label": "Preto", "hint": "Tinta sobre o tabuleiro" },
+      "paper": { "label": "Branco", "hint": "Papel de partitura" },
+      "sepia": { "label": "Sépia", "hint": "Coluna clássica de xadrez" }
+    },
+    "errors": {
+      "missing_username": "Informe o usuário da plataforma principal.",
+      "same_provider": "O site secundário deve ser diferente do principal.",
+      "missing_time_control": "Informe o time control para o modo manual (por exemplo 600+0).",
+      "missing_initial_rating": "Informe o rating inicial para problemas.",
+      "missing_dates": "Informe as datas inicial e final.",
+      "inverted_dates": "A data inicial deve ser anterior ou igual à final.",
+      "missing_session_start": "Clique em Iniciar contador para marcar o início da sessão.",
+      "refresh_too_low": "O intervalo mínimo de atualização é {seconds} segundos."
+    }
+  },
+  "about": {
+    "metaTitle": "Sobre",
+    "metaDescription": "O ChesStats é um overlay independente e de código aberto para streamers de xadrez. Não é afiliado ao Chess.com nem ao Lichess.",
+    "title": "Sobre o ChesStats",
+    "paragraphs": [
+      "O ChesStats é um overlay gratuito e de código aberto que mostra estatísticas ao vivo do Chess.com e do Lichess dentro do OBS e de outras ferramentas de transmissão.",
+      "Ele é feito para streamers de xadrez que querem variação de rating, retrospecto, win rate e sequência na tela sem criar uma conta.",
+      "O ChesStats é um projeto independente. Não é afiliado, endossado nem patrocinado pelo Chess.com ou pelo Lichess."
+    ],
+    "attributionTitle": "Atribuição das APIs",
+    "attribution": [
+      "Os dados de jogadores e partidas vêm da API pública de dados publicados do Chess.com e da API pública do Lichess. Esses serviços, seus nomes e suas marcas pertencem aos respectivos donos.",
+      "O ChesStats não pede senhas do Chess.com nem do Lichess."
+    ]
+  },
+  "privacy": {
+    "metaTitle": "Privacidade",
+    "metaDescription": "Como o ChesStats trata usuários, configuração do overlay e APIs públicas de xadrez.",
+    "title": "Privacidade",
+    "paragraphs": [
+      "O ChesStats não exige conta para o overlay básico. As configurações ficam no seu navegador, em localStorage. Elas não são enviadas para uma conta do ChesStats.",
+      "A URL do overlay contém o usuário de xadrez e as opções de exibição que você escolheu. Quem tiver essa URL pode pedir as mesmas estatísticas públicas.",
+      "Os usuários são enviados ao Chess.com ou ao Lichess pelas APIs públicas desses sites. O ChesStats não coleta nem armazena senhas de xadrez.",
+      "A escolha de idioma fica num cookie chamado chesstats-locale para o site abrir no mesmo idioma da próxima vez."
+    ]
+  },
+  "terms": {
+    "metaTitle": "Termos",
+    "metaDescription": "Termos de uso do overlay gratuito ChesStats.",
+    "title": "Termos",
+    "paragraphs": [
+      "O ChesStats é oferecido de graça e como software de código aberto, sem garantia. Ferramentas de transmissão, sites de xadrez e suas APIs podem mudar ou ficar indisponíveis.",
+      "Você é responsável pelos usuários, cores e imagens que coloca num overlay, inclusive a URL de uma logo de patrocinador.",
+      "Chess.com e Lichess são marcas dos respectivos donos. Usar o ChesStats não cria relação com essas empresas."
+    ]
+  },
+  "changelog": {
+    "metaTitle": "Changelog",
+    "metaDescription": "O que mudou no ChesStats.",
+    "title": "Changelog",
+    "entries": [
+      {
+        "version": "0.1.0",
+        "items": [
+          "Overlay gratuito de Chess.com e Lichess para OBS, com variação de rating, retrospecto, win rate e sequência.",
+          "Página inicial em inglês e português, com escolha de idioma guardada num cookie.",
+          "As URLs do overlay e da API continuam sem prefixo, então as browser sources existentes seguem funcionando."
+        ]
+      }
+    ]
+  },
+  "docs": {
+    "metaTitle": "Guia do OBS",
+    "metaDescription": "Adicione um overlay de xadrez do ChesStats no OBS como browser source.",
+    "title": "Adicionar o overlay no OBS",
+    "intro": "Não é preciso plugin. O OBS carrega o overlay como browser source.",
+    "steps": [
+      "Abra o ChesStats e informe o seu usuário do Chess.com ou do Lichess.",
+      "Escolha a modalidade e clique em Iniciar contador se quiser só as estatísticas da transmissão atual.",
+      "Clique em Copiar URL.",
+      "No OBS, adicione uma fonte e escolha Browser.",
+      "Cole a URL. Defina a largura em cerca de 420 pixels, ou cerca de 840 se mostrar os dois sites. Defina a altura em cerca de 220.",
+      "Ative o fundo transparente e posicione a fonte sobre o tabuleiro."
+    ],
+    "note": "A mesma URL funciona em outras ferramentas com browser source, inclusive o Streamlabs."
+  }
+}

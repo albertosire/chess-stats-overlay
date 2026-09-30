@@ -88,10 +88,10 @@ export default function OverlayClient() {
 
   const configError = useMemo(() => {
     if (!params.get("username") || !gameType) {
-      return "Informe username e type na URL.";
+      return "Add a username and game type to this overlay URL.";
     }
     if (gameType === "puzzles" && !initialRating && !urlInitialRating) {
-      return "Para type=puzzles, informe initialRating na URL.";
+      return "For puzzle tracking, add initialRating to the URL.";
     }
     return null;
   }, [params, gameType, initialRating, urlInitialRating]);
@@ -152,7 +152,15 @@ export default function OverlayClient() {
         const primaryPayload = await primaryRes.json();
         if (cancelled) return;
         if (!primaryRes.ok) {
-          throw new Error(primaryPayload.error ?? "Falha ao carregar estatísticas.");
+          setError(
+            typeof primaryPayload.error === "string" &&
+              primaryPayload.error.length > 0 &&
+              primaryPayload.error.length < 180 &&
+              !primaryPayload.error.includes("\n")
+              ? primaryPayload.error
+              : "Couldn't load this player's games. Try again in a few seconds.",
+          );
+          return;
         }
 
         setData((current) => {
@@ -171,13 +179,9 @@ export default function OverlayClient() {
           setSecondaryData(null);
         }
         setError(null);
-      } catch (fetchError) {
+      } catch {
         if (cancelled) return;
-        setError(
-          fetchError instanceof Error
-            ? fetchError.message
-            : "Erro ao atualizar estatísticas.",
-        );
+        setError("Couldn't load this player's games. Try again in a few seconds.");
       } finally {
         if (!cancelled) {
           setLoading(false);

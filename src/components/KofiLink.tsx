@@ -19,7 +19,7 @@ function CoffeeIcon({ className }: { className?: string }) {
   );
 }
 
-export function KofiLink({ compact = false }: { compact?: boolean }) {
+export function KofiLink({ compact = false, label }: { compact?: boolean; label: string }) {
   return (
     <a
       href={KOFI_URL}
@@ -32,7 +32,7 @@ export function KofiLink({ compact = false }: { compact?: boolean }) {
       }
     >
       <CoffeeIcon className="h-4 w-4" />
-      Apoie o projeto (Ko-fi)
+      {label}
     </a>
   );
 }

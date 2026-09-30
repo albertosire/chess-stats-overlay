@@ -1,17 +1,12 @@
 import { buildStats } from "@/lib/chess-com/stats";
 import { chessFetch } from "@/lib/chess-com/client";
 import type { PlayerStats } from "@/lib/chess-com/types";
+import { computeWinRate } from "@/lib/domain/stats";
 import type {
   NormalizedStatsParams,
   NormalizedStatsResult,
   StatsProvider,
 } from "../types";
-
-function computeWinRate(wins: number, draws: number, losses: number): number | null {
-  const total = wins + draws + losses;
-  if (total === 0) return null;
-  return Math.round((wins / total) * 1000) / 10;
-}
 
 async function fetchCurrentRating(
   username: string,

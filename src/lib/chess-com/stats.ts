@@ -1,3 +1,9 @@
+import {
+  computeRatingDelta,
+  computeStreak,
+  tallyOutcomes,
+  type GameOutcome,
+} from "@/lib/domain/stats";
 import { fetchGamesInPeriod } from "./archives";
 import { chessFetch } from "./client";
 import { isInPeriod, matchesGameType } from "./filters";
@@ -37,13 +43,10 @@ function getPlayerSide(
   return null;
 }
 
-function computeGameStats(games: ChessGame[], username: string) {
-  let wins = 0;
-  let draws = 0;
-  let losses = 0;
+export function summarizeChessComGames(games: ChessGame[], username: string) {
   let ratedGames = 0;
   const ratedByTime: { endTime: number; rating: number }[] = [];
-  const outcomes: Array<"win" | "draw" | "loss"> = [];
+  const outcomes: GameOutcome[] = [];
 
   const ordered = [...games].sort((a, b) => a.end_time - b.end_time);
 
@@ -51,11 +54,7 @@ function computeGameStats(games: ChessGame[], username: string) {
     const side = getPlayerSide(game, username);
     if (!side) continue;
 
-    const outcome = classifyResult(game[side].result);
-    outcomes.push(outcome);
-    if (outcome === "win") wins += 1;
-    else if (outcome === "draw") draws += 1;
-    else losses += 1;
+    outcomes.push(classifyResult(game[side].result));
 
     if (game.rated && game[side].rating != null) {
       ratedGames += 1;
@@ -64,27 +63,13 @@ function computeGameStats(games: ChessGame[], username: string) {
   }
 
   ratedByTime.sort((a, b) => a.endTime - b.endTime);
-
-  let ratingDelta = 0;
-  if (ratedByTime.length >= 2) {
-    ratingDelta =
-      ratedByTime[ratedByTime.length - 1].rating - ratedByTime[0].rating;
-  }
-
-  let streak = 0;
-  for (let i = outcomes.length - 1; i >= 0; i -= 1) {
-    if (outcomes[i] !== "win") break;
-    streak += 1;
-  }
+  const tally = tallyOutcomes(outcomes);
 
   return {
-    wins,
-    draws,
-    losses,
-    games: wins + draws + losses,
+    ...tally,
     ratedGames,
-    ratingDelta,
-    streak,
+    ratingDelta: computeRatingDelta(ratedByTime.map((entry) => entry.rating)),
+    streak: computeStreak(outcomes),
     lastRating: ratedByTime.at(-1)?.rating ?? null,
   };
 }
@@ -190,7 +175,7 @@ export async function buildStats(params: StatsParams): Promise<StatsResult> {
     ),
   );
 
-  const computed = computeGameStats(filtered, username);
+  const computed = summarizeChessComGames(filtered, username);
 
   return {
     username,

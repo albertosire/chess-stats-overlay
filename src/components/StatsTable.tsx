@@ -9,6 +9,40 @@ import {
 } from "@/lib/color-contrast";
 import { DEFAULT_OVERLAY_STYLES } from "@/lib/overlay/display";
 
+interface StatsTableLabels {
+  elo: string;
+  wins: string;
+  draws: string;
+  losses: string;
+  delta: string;
+  winRate: string;
+  streak: string;
+  games: string;
+  rated: string;
+  updated: string;
+  updating: string;
+  victory: string;
+  milestone: string;
+  sponsor: string;
+}
+
+const DEFAULT_STATS_LABELS: StatsTableLabels = {
+  elo: "ELO",
+  wins: "Vitórias",
+  draws: "Empates",
+  losses: "Derrotas",
+  delta: "Δ Rating",
+  winRate: "WR%",
+  streak: "Streak",
+  games: "partidas",
+  rated: "rated",
+  updated: "Atualizado",
+  updating: "Atualizando…",
+  victory: "🔥 Vitória!",
+  milestone: "⭐ Marco {rating} ELO!",
+  sponsor: "Patrocinador",
+};
+
 interface StatsTableProps {
   data: NormalizedStatsResult;
   title?: string;
@@ -20,6 +54,8 @@ interface StatsTableProps {
   sponsorLogoUrl?: string | null;
   showAlerts?: boolean;
   previousData?: NormalizedStatsResult | null;
+  labels?: StatsTableLabels;
+  locale?: string;
 }
 
 function formatDelta(value: number | null): string {
@@ -39,6 +75,8 @@ export function StatsTable({
   sponsorLogoUrl,
   showAlerts,
   previousData,
+  labels = DEFAULT_STATS_LABELS,
+  locale = "pt-BR",
 }: StatsTableProps) {
   const isPuzzles = data.meta.mode === "puzzles";
   const displayName = title?.trim() || data.username;
@@ -85,7 +123,7 @@ export function StatsTable({
           className="mb-2 animate-pulse rounded-md px-2 py-1 text-center text-xs font-semibold"
           style={{ background: alertBg, color: alertFg }}
         >
-          {justWon ? "🔥 Vitória!" : `⭐ Marco ${data.stats.currentRating} ELO!`}
+          {justWon ? labels.victory : labels.milestone.replace("{rating}", String(data.stats.currentRating))}
         </div>
       ) : null}
 
@@ -102,23 +140,23 @@ export function StatsTable({
         <span>
           {typeLabel(data.type as GameType)} · {data.period.from} → {data.period.to}
         </span>
-        {loading ? <span className="text-xs opacity-70">Atualizando…</span> : null}
+        {loading ? <span className="text-xs opacity-70">{labels.updating}</span> : null}
       </div>
 
       <table className="w-full min-w-[320px] border-collapse text-center text-lg">
         <thead>
           <tr className="text-sm uppercase tracking-wide" style={{ color: mutedColor }}>
-            {showRating ? <th className="px-3 py-2 font-medium">ELO</th> : null}
+            {showRating ? <th className="px-3 py-2 font-medium">{labels.elo}</th> : null}
             {!isPuzzles ? (
               <>
-                <th className="px-3 py-2 font-medium">Vitórias</th>
-                <th className="px-3 py-2 font-medium">Empates</th>
-                <th className="px-3 py-2 font-medium">Derrotas</th>
+                <th className="px-3 py-2 font-medium">{labels.wins}</th>
+                <th className="px-3 py-2 font-medium">{labels.draws}</th>
+                <th className="px-3 py-2 font-medium">{labels.losses}</th>
               </>
             ) : null}
-            {showDelta ? <th className="px-3 py-2 font-medium">Δ Rating</th> : null}
-            {showWinRate ? <th className="px-3 py-2 font-medium">WR%</th> : null}
-            {showStreak ? <th className="px-3 py-2 font-medium">Streak</th> : null}
+            {showDelta ? <th className="px-3 py-2 font-medium">{labels.delta}</th> : null}
+            {showWinRate ? <th className="px-3 py-2 font-medium">{labels.winRate}</th> : null}
+            {showStreak ? <th className="px-3 py-2 font-medium">{labels.streak}</th> : null}
           </tr>
         </thead>
         <tbody>
@@ -163,7 +201,7 @@ export function StatsTable({
 
       {!isPuzzles ? (
         <p className="mt-2 text-center text-xs" style={{ color: mutedColor }}>
-          {data.stats.games} partidas · {data.meta.ratedGames} rated
+          {data.stats.games} {labels.games} · {data.meta.ratedGames} {labels.rated}
         </p>
       ) : null}
 
@@ -171,13 +209,13 @@ export function StatsTable({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={sponsorLogoUrl}
-          alt="Patrocinador"
+          alt={labels.sponsor}
           className="mx-auto mt-3 max-h-10 object-contain opacity-90"
         />
       ) : null}
 
       <p className="mt-1 text-center text-[10px]" style={{ color: mutedColor }}>
-        Atualizado: {new Date(data.meta.fetchedAt).toLocaleTimeString("pt-BR")}
+        {labels.updated}: {new Date(data.meta.fetchedAt).toLocaleTimeString(locale)}
       </p>
 
       {data.meta.note ? (

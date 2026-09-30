@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
+import { siteUrl } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,19 +21,26 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Chess Stats Overlay",
+  metadataBase: new URL(siteUrl()),
+  title: {
+    default: "ChesStats",
+    template: "%s · ChesStats",
+  },
   description:
-    "Overlay gratuito e open source de estatísticas Chess.com / Lichess para OBS",
+    "Free live chess statistics overlay for OBS and Streamlabs. Track Chess.com and Lichess rating changes, win rate, streaks and session performance.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerStore = await headers();
+  const locale = headerStore.get("x-locale") === "pt-BR" ? "pt-BR" : "en";
+
   return (
     <html
-      lang="pt-BR"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased`}
     >
       <body className="bg-background text-foreground">{children}</body>

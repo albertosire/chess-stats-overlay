@@ -1,4 +1,4 @@
-import { ChessApiError } from "@/lib/chess-com/client";
+import { statsParamMessage, toLoadStatsFailure } from "@/lib/errors";
 import { parseStatsParams } from "@/lib/chess-com/params";
 import type { StatsParams } from "@/lib/chess-com/types";
 import type {
@@ -26,7 +26,7 @@ export async function loadStats(
 ): Promise<{ result: NormalizedStatsResult } | { error: string; status: number }> {
   const parsed = parseStatsParams(searchParams);
   if ("error" in parsed) {
-    return { error: parsed.error, status: 400 };
+    return { error: statsParamMessage(parsed.error), status: 400 };
   }
 
   applySessionStart(searchParams, parsed.params);
@@ -42,13 +42,6 @@ export async function loadStats(
     const result = await fetchProviderStats(provider, parsed.params);
     return { result };
   } catch (error) {
-    if (error instanceof ChessApiError) {
-      return { error: error.message, status: error.status };
-    }
-
-    return {
-      error: error instanceof Error ? error.message : "Erro ao carregar estatísticas.",
-      status: 500,
-    };
+    return toLoadStatsFailure(error);
   }
 }
