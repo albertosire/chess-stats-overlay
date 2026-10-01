@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { LOCALES, localePath } from "@/lib/i18n";
 import { siteUrl } from "@/lib/site";
 
-const PATHS = ["", "/about", "/privacy", "/terms", "/changelog", "/docs"];
+const PATHS = ["", "/create", "/about", "/privacy", "/terms", "/changelog", "/docs"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const origin = siteUrl();

@@ -9,6 +9,9 @@
     "language": "Idioma",
     "support": "Apoie no Ko-fi",
     "home": "Início",
+    "overlay": "Overlay",
+    "docs": "Docs",
+    "about": "Sobre",
     "skip": "Ir para o configurador"
   },
   "hero": {
@@ -44,18 +47,11 @@
   "features": {
     "title": "O que entra na transmissão",
     "items": [
-      { "title": "Chess.com", "body": "Partidas, rating e resultados públicos do Chess.com." },
-      { "title": "Lichess", "body": "As mesmas estatísticas de sessão a partir de uma conta Lichess." },
-      { "title": "Variação de rating", "body": "Quanto o rating mudou no período escolhido." },
-      { "title": "Vitórias, derrotas e empates", "body": "O retrospecto das partidas na janela do overlay." },
-      { "title": "Win rate", "body": "Vitórias divididas por todas as partidas da sessão." },
-      { "title": "Sequência", "body": "A série atual de vitórias, atualizada quando as partidas terminam." },
-      { "title": "Sessão", "body": "Inicie o contador quando a live começa e mantenha essa marca na URL." },
       { "title": "As duas plataformas", "body": "Mostre Chess.com e Lichess lado a lado." },
+      { "title": "Variação de rating", "body": "Quanto o rating mudou no período escolhido, com o retrospecto, o win rate e a sequência." },
+      { "title": "Sessão", "body": "Inicie o contador quando a live começa e mantenha essa marca na URL." },
       { "title": "Fundo transparente", "body": "A browser source fica por cima do tabuleiro." },
-      { "title": "Cores personalizadas", "body": "Escolha uma paleta ou defina as cores primária e de destaque." },
-      { "title": "Browser source", "body": "Cole uma URL no OBS. Sem instalar plugin." },
-      { "title": "Sem cadastro", "body": "O overlay básico funciona sem conta." }
+      { "title": "Cores personalizadas", "body": "Escolha uma paleta ou defina as cores primária e de destaque." }
     ]
   },
   "how": {
@@ -121,7 +117,10 @@
   },
   "builder": {
     "accountsTitle": "Contas",
-    "accountsDescription": "A configuração fica neste navegador. Exporte o JSON para backup ou para outro computador.",
+    "accountsDescription": "A configuração fica neste navegador.",
+    "advancedTitle": "Avançado",
+    "advancedDescription": "Exporte o JSON para backup ou para outro computador.",
+    "moreFormats": "Mais formatos",
     "exportJson": "Exportar JSON",
     "importJson": "Importar JSON",
     "exported": "Configuração exportada.",
@@ -154,7 +153,7 @@
     "previewDescription": "O tabuleiro ao fundo ajuda a avaliar paletas claras e escuras.",
     "openOverlay": "Abrir overlay",
     "previewFrameTitle": "Pré-visualização do overlay",
-    "previewEmpty": "Preencha os campos obrigatórios para ver a pré-visualização.",
+    "previewEmpty": "Informe o usuário principal para liberar Copiar URL.",
     "displayTitle": "Exibição",
     "displayDescription": "Colunas do overlay, alertas e paleta.",
     "columnsLegend": "Colunas e alertas",
@@ -174,7 +173,7 @@
     "tabIframe": "Snippet HTML",
     "tabText": "URL de texto",
     "tabApi": "URL da API JSON",
-    "outputEmpty": "Complete a configuração para gerar o código.",
+    "outputEmpty": "Informe o usuário principal para liberar Copiar URL.",
     "copyUrl": "Copiar URL",
     "copySnippet": "Copiar snippet",
     "copyText": "Copiar URL de texto",
@@ -204,13 +203,12 @@
       "sepia": { "label": "Sépia", "hint": "Coluna clássica de xadrez" }
     },
     "errors": {
-      "missing_username": "Informe o usuário da plataforma principal.",
+      "missing_username": "Informe o usuário principal para liberar Copiar URL.",
       "same_provider": "O site secundário deve ser diferente do principal.",
       "missing_time_control": "Informe o time control para o modo manual (por exemplo 600+0).",
       "missing_initial_rating": "Informe o rating inicial para problemas.",
       "missing_dates": "Informe as datas inicial e final.",
       "inverted_dates": "A data inicial deve ser anterior ou igual à final.",
-      "missing_session_start": "Clique em Iniciar contador para marcar o início da sessão.",
       "refresh_too_low": "O intervalo mínimo de atualização é {seconds} segundos."
     }
   },
@@ -262,6 +260,13 @@
           "Página inicial em inglês e português, com escolha de idioma guardada num cookie.",
           "As URLs do overlay e da API continuam sem prefixo, então as browser sources existentes seguem funcionando."
         ]
+      },
+      {
+        "version": "0.2.0",
+        "items": [
+          "Criar meu overlay abre o configurador direto, com a pré-visualização fixa.",
+          "Copiar URL libera quando o usuário principal está preenchido. Iniciar contador só marca uma sessão ao vivo."
+        ]
       }
     ]
   },
@@ -271,7 +276,7 @@
     "title": "Adicionar o overlay no OBS",
     "intro": "Não é preciso plugin. O OBS carrega o overlay como browser source.",
     "steps": [
-      "Abra o ChesStats e informe o seu usuário do Chess.com ou do Lichess.",
+      "Escolha Criar meu overlay e informe o seu usuário do Chess.com ou do Lichess.",
       "Escolha a modalidade e clique em Iniciar contador se quiser só as estatísticas da transmissão atual.",
       "Clique em Copiar URL.",
       "No OBS, adicione uma fonte e escolha Browser.",

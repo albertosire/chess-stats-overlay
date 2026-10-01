@@ -1,14 +1,16 @@
-import { OverlayBuilder } from "@/components/OverlayBuilder";
 import { HeroPreview } from "@/components/landing/HeroPreview";
-import { OVERLAY_PALETTES } from "@/lib/chess-com/build-url";
+import { LegacyCreateRedirect } from "@/components/landing/LegacyCreateRedirect";
+import { localePath, type Dictionary, type Locale } from "@/lib/i18n";
 import { GITHUB_URL } from "@/lib/site";
-import type { Dictionary, Locale } from "@/lib/i18n";
 
 export function HomeLanding({ locale, dict }: { locale: Locale; dict: Dictionary }) {
+  const createHref = localePath(locale, "/create");
+
   return (
     <>
+      <LegacyCreateRedirect href={createHref} />
       <a
-        href="#configurator"
+        href={createHref}
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2"
       >
         {dict.nav.skip}
@@ -21,13 +23,13 @@ export function HomeLanding({ locale, dict }: { locale: Locale; dict: Dictionary
           <p className="text-sm text-foreground">{dict.hero.points}</p>
           <div className="flex flex-wrap gap-3">
             <a
-              href="#configurator"
+              href={createHref}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
             >
               {dict.hero.cta}
             </a>
             <a
-              href="#demo"
+              href={`${createHref}#preview`}
               className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:border-foreground/40"
             >
               {dict.hero.demo}
@@ -74,36 +76,15 @@ export function HomeLanding({ locale, dict }: { locale: Locale; dict: Dictionary
       </section>
 
       <section className="mx-auto max-w-5xl px-6 py-8" aria-labelledby="gallery-heading">
-        <h2 id="gallery-heading" className="font-serif text-3xl text-foreground">
-          {dict.gallery.title}
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{dict.gallery.intro}</p>
-        <ul className="mt-6 grid gap-4 sm:grid-cols-3">
-          {OVERLAY_PALETTES.map((palette) => (
-            <li key={palette.id} className="rounded-2xl border border-border bg-card p-4">
-              <div
-                className="mb-3 flex h-16 overflow-hidden rounded-lg border border-border"
-                aria-hidden="true"
-              >
-                <span className="w-2/3" style={{ background: palette.primary }} />
-                <span className="w-1/3" style={{ background: palette.accent }} />
-              </div>
-              <h3 className="font-medium">{dict.builder.palettes[palette.id].label}</h3>
-              <p className="text-sm text-muted-foreground">{dict.builder.palettes[palette.id].hint}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section
-        id="configurator"
-        className="mx-auto max-w-3xl scroll-mt-8 px-6 py-10"
-        aria-labelledby="configurator-heading"
-      >
-        <h2 id="configurator-heading" className="mb-6 font-serif text-3xl text-foreground">
-          {dict.configurator.title}
-        </h2>
-        <OverlayBuilder copy={dict.builder} locale={locale} />
+        <a
+          href={`${createHref}#display`}
+          className="block rounded-2xl border border-border bg-card p-5 transition hover:border-foreground/40"
+        >
+          <h2 id="gallery-heading" className="font-serif text-3xl text-foreground">
+            {dict.gallery.title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{dict.gallery.intro}</p>
+        </a>
       </section>
 
       <section className="mx-auto max-w-3xl px-6 py-8" aria-labelledby="faq-heading">

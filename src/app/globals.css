@@ -64,6 +64,10 @@ body {
   font-family: var(--font-instrument-serif), var(--font-serif), ui-serif, Georgia, serif;
 }
 
+details:not([open]) > :not(summary) {
+  display: none;
+}
+
 .preview-checkered {
   background-color: #b58863;
   background-image: repeating-conic-gradient(#f0d9b5 0% 25%, #b58863 0% 50%);
