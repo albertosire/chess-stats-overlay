@@ -211,7 +211,6 @@ export type OverlayConfigErrorCode =
   | "missing_initial_rating"
   | "missing_dates"
   | "inverted_dates"
-  | "missing_session_start"
   | "refresh_too_low";
 
 export function validateOverlayConfig(config: OverlayConfig): OverlayConfigErrorCode[] {
@@ -239,10 +238,6 @@ export function validateOverlayConfig(config: OverlayConfig): OverlayConfigError
     } else if (config.from > config.to) {
       errors.push("inverted_dates");
     }
-  }
-
-  if (config.periodMode === "session" && !config.sessionStart) {
-    errors.push("missing_session_start");
   }
 
   if (config.refresh < MIN_REFRESH_SECONDS) {

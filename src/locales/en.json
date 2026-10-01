@@ -9,6 +9,9 @@
     "language": "Language",
     "support": "Support on Ko-fi",
     "home": "Home",
+    "overlay": "Overlay",
+    "docs": "Docs",
+    "about": "About",
     "skip": "Skip to configurator"
   },
   "hero": {
@@ -44,18 +47,11 @@
   "features": {
     "title": "What you can put on stream",
     "items": [
-      { "title": "Chess.com", "body": "Public games, rating, and results from Chess.com." },
-      { "title": "Lichess", "body": "The same session stats from a Lichess account." },
-      { "title": "Rating change", "body": "See how much the rating moved during the period." },
-      { "title": "Wins, losses, draws", "body": "The record for the games in the overlay window." },
-      { "title": "Win rate", "body": "Wins divided by all games in the session." },
-      { "title": "Streak", "body": "Current run of wins, updated as games finish." },
-      { "title": "Session tracking", "body": "Start a counter when the stream starts and keep that mark in the URL." },
       { "title": "Both platforms", "body": "Show Chess.com and Lichess side by side." },
+      { "title": "Rating change", "body": "See how much the rating moved during the period, with the record, win rate, and streak." },
+      { "title": "Session tracking", "body": "Start a counter when the stream starts and keep that mark in the URL." },
       { "title": "Transparent background", "body": "The browser source sits on top of the board." },
-      { "title": "Custom colors", "body": "Pick a palette, or set your own primary and accent colors." },
-      { "title": "Browser source", "body": "Paste one URL into OBS. No plugin install." },
-      { "title": "No signup", "body": "The basic overlay works without an account." }
+      { "title": "Custom colors", "body": "Pick a palette, or set your own primary and accent colors." }
     ]
   },
   "how": {
@@ -121,7 +117,10 @@
   },
   "builder": {
     "accountsTitle": "Accounts",
-    "accountsDescription": "The configuration stays in this browser. Export the JSON to back it up or move it to another computer.",
+    "accountsDescription": "The configuration stays in this browser.",
+    "advancedTitle": "Advanced",
+    "advancedDescription": "Export the JSON to back it up or move it to another computer.",
+    "moreFormats": "More formats",
     "exportJson": "Export JSON",
     "importJson": "Import JSON",
     "exported": "Configuration exported.",
@@ -154,7 +153,7 @@
     "previewDescription": "The board behind the card helps you judge light and dark palettes.",
     "openOverlay": "Open overlay",
     "previewFrameTitle": "Overlay preview",
-    "previewEmpty": "Fill in the required fields to see the preview.",
+    "previewEmpty": "Enter primary username to unlock Copy URL.",
     "displayTitle": "Display",
     "displayDescription": "Overlay columns, alerts, and palette.",
     "columnsLegend": "Columns and alerts",
@@ -174,7 +173,7 @@
     "tabIframe": "HTML snippet",
     "tabText": "Text URL",
     "tabApi": "JSON API URL",
-    "outputEmpty": "Finish the configuration to generate the code.",
+    "outputEmpty": "Enter primary username to unlock Copy URL.",
     "copyUrl": "Copy URL",
     "copySnippet": "Copy snippet",
     "copyText": "Copy text URL",
@@ -204,13 +203,12 @@
       "sepia": { "label": "Sepia", "hint": "Classic chess column" }
     },
     "errors": {
-      "missing_username": "Enter the primary username.",
+      "missing_username": "Enter primary username to unlock Copy URL.",
       "same_provider": "The secondary site must be different from the primary site.",
       "missing_time_control": "Enter a time control for manual mode (for example 600+0).",
       "missing_initial_rating": "Enter a starting rating for puzzles.",
       "missing_dates": "Enter the start and end dates.",
       "inverted_dates": "The start date must be on or before the end date.",
-      "missing_session_start": "Click Start counter to mark the beginning of the session.",
       "refresh_too_low": "The minimum refresh interval is {seconds} seconds."
     }
   },
@@ -262,6 +260,13 @@
           "Landing page in English and Portuguese, with a language choice that stays in a cookie.",
           "Overlay and API URLs stay unprefixed, so existing browser sources keep working."
         ]
+      },
+      {
+        "version": "0.2.0",
+        "items": [
+          "Create my overlay opens the configurator directly, with a sticky preview.",
+          "Copy URL unlocks when the primary username is filled. Start counter is only for marking a live session."
+        ]
       }
     ]
   },
@@ -271,7 +276,7 @@
     "title": "Add the overlay to OBS",
     "intro": "You do not need a plugin. OBS loads the overlay as a browser source.",
     "steps": [
-      "Open ChesStats and enter your Chess.com or Lichess username.",
+      "Choose Create my overlay and enter your Chess.com or Lichess username.",
       "Choose the mode and click Start counter if you want stats for the current stream only.",
       "Click Copy URL.",
       "In OBS, add a source and choose Browser.",
