@@ -8,10 +8,13 @@ export function localeMetadata(
   title: string,
   description: string,
 ): Metadata {
-  const canonical = localePath(locale, path);
-  const languages: Record<string, string> = { "x-default": localePath("en", path) };
+  const origin = siteUrl();
+  const canonical = `${origin}${localePath(locale, path)}`;
+  const languages: Record<string, string> = {
+    "x-default": `${origin}${localePath("en", path)}`,
+  };
   for (const entry of LOCALES) {
-    languages[entry] = localePath(entry, path);
+    languages[entry] = `${origin}${localePath(entry, path)}`;
   }
 
   return {

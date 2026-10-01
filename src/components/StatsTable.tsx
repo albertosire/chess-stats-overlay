@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import type { NormalizedStatsResult, OverlayEntitlements } from "@/lib/providers/types";
 import { typeLabel } from "@/lib/chess-com/params";
 import type { GameType } from "@/lib/providers/types";
@@ -56,6 +57,35 @@ interface StatsTableProps {
   previousData?: NormalizedStatsResult | null;
   labels?: StatsTableLabels;
   locale?: string;
+}
+
+function subscribeToNothing() {
+  return () => {};
+}
+
+function UpdatedLine({
+  iso,
+  locale,
+  label,
+  color,
+}: {
+  iso: string;
+  locale: string;
+  label: string;
+  color: string;
+}) {
+  const time = useSyncExternalStore(
+    subscribeToNothing,
+    () => new Date(iso).toLocaleTimeString(locale),
+    () => "",
+  );
+
+  return (
+    <p className="mt-1 text-center text-[10px]" style={{ color }}>
+      {label}
+      {time ? `: ${time}` : null}
+    </p>
+  );
 }
 
 function formatDelta(value: number | null): string {
@@ -214,9 +244,12 @@ export function StatsTable({
         />
       ) : null}
 
-      <p className="mt-1 text-center text-[10px]" style={{ color: mutedColor }}>
-        {labels.updated}: {new Date(data.meta.fetchedAt).toLocaleTimeString(locale)}
-      </p>
+      <UpdatedLine
+        iso={data.meta.fetchedAt}
+        locale={locale}
+        label={labels.updated}
+        color={mutedColor}
+      />
 
       {data.meta.note ? (
         <p className="mt-2 max-w-md text-center text-xs" style={{ color: mutedColor }}>
