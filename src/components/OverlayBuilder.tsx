@@ -130,11 +130,12 @@ export function OverlayBuilder({
   const [storageMessage, setStorageMessage] = useState<string | null>(null);
   const [livePath, setLivePath] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editedRef = useRef(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       setOrigin(window.location.origin);
-      setConfig(loadOverlayConfig());
+      setConfig((current) => (editedRef.current ? current : loadOverlayConfig()));
       setHydrated(true);
     });
     return () => window.cancelAnimationFrame(frame);
@@ -171,6 +172,7 @@ export function OverlayBuilder({
   }, [canCopy, overlayPath]);
 
   function update<K extends keyof OverlayConfig>(key: K, value: OverlayConfig[K]) {
+    editedRef.current = true;
     setConfig((current) => ({ ...current, [key]: value }));
   }
 
@@ -179,6 +181,7 @@ export function OverlayBuilder({
   }
 
   function applyPalette(palette: (typeof OVERLAY_PALETTES)[number]) {
+    editedRef.current = true;
     setConfig((current) => ({
       ...current,
       primaryColor: palette.primary,
@@ -206,6 +209,7 @@ export function OverlayBuilder({
       try {
         const text = String(reader.result ?? "");
         const next = importOverlayConfigJson(text);
+        editedRef.current = true;
         setConfig(next);
         setStorageMessage(copy.imported);
       } catch {
