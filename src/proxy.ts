@@ -4,6 +4,24 @@ import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, type Locale } from "@/lib/i18n
 
 const EXCLUDED = [/^\/overlay(?:\/|$)/, /^\/api(?:\/|$)/, /^\/login(?:\/|$)/, /^\/dashboard(?:\/|$)/];
 
+/** Pages that exist under `app/[locale]`. `/pt` aliases these; it is not a locale. */
+const PT_ALIAS_SUFFIXES = new Set([
+  "",
+  "/about",
+  "/changelog",
+  "/create",
+  "/docs",
+  "/privacy",
+  "/terms",
+]);
+
+function ptAliasDestination(pathname: string): string | null {
+  if (pathname !== "/pt" && !pathname.startsWith("/pt/")) return null;
+  const suffix = pathname.slice("/pt".length);
+  if (!PT_ALIAS_SUFFIXES.has(suffix)) return null;
+  return `/pt-BR${suffix}`;
+}
+
 function preferredLocale(request: NextRequest): Locale {
   const saved = request.cookies.get(LOCALE_COOKIE)?.value;
   if (isLocale(saved)) return saved;
@@ -20,6 +38,15 @@ function localeFromPath(pathname: string): Locale | null {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Alias before the locale prefixer. Otherwise `/pt` is treated as an
+  // unlocalized path and becomes `/en/pt` or `/pt-BR/pt`.
+  const alias = ptAliasDestination(pathname);
+  if (alias) {
+    const url = request.nextUrl.clone();
+    url.pathname = alias;
+    return NextResponse.redirect(url, 308);
+  }
 
   if (pathname === "/pt-br" || pathname.startsWith("/pt-br/")) {
     const url = request.nextUrl.clone();
