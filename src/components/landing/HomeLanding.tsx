@@ -1,3 +1,4 @@
+import { ChessComAffiliateLine } from "@/components/landing/ChessComAffiliateLine";
 import { HeroPreview } from "@/components/landing/HeroPreview";
 import { LegacyCreateRedirect } from "@/components/landing/LegacyCreateRedirect";
 import { localePath, type Dictionary, type Locale } from "@/lib/i18n";
@@ -99,6 +100,12 @@ export function HomeLanding({ locale, dict }: { locale: Locale; dict: Dictionary
             </details>
           ))}
         </div>
+        <ChessComAffiliateLine
+          placement="faq"
+          linkLabel={dict.affiliate.link}
+          disclosure={dict.affiliate.disclosure}
+          className="mt-6"
+        />
       </section>
 
       <section className="mx-auto max-w-3xl px-6 py-10" aria-labelledby="oss-heading">

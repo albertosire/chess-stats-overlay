@@ -99,6 +99,10 @@
     "body": "O ChesStats é um projeto independente e de código aberto de Alberto Horta. Não é afiliado ao Chess.com nem ao Lichess.",
     "github": "Ver no GitHub"
   },
+  "affiliate": {
+    "link": "Jogue no Chess.com",
+    "disclosure": "Link de afiliado"
+  },
   "footer": {
     "product": "Produto",
     "resources": "Recursos",
