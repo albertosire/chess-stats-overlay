@@ -1,3 +1,4 @@
+import { ChessComAffiliateLine } from "@/components/landing/ChessComAffiliateLine";
 import { KOFI_URL } from "@/lib/kofi";
 import { GITHUB_URL } from "@/lib/site";
 import { localePath, type Dictionary, type Locale } from "@/lib/i18n";
@@ -58,6 +59,12 @@ export function SiteFooter({ locale, dict }: { locale: Locale; dict: Dictionary 
           </nav>
         ))}
       </div>
+      <ChessComAffiliateLine
+        placement="footer"
+        linkLabel={dict.affiliate.link}
+        disclosure={dict.affiliate.disclosure}
+        className="mx-auto max-w-6xl px-6 pb-8"
+      />
     </footer>
   );
 }
